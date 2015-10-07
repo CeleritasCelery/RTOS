@@ -1,12 +1,21 @@
-void YKInitialize();// - Initializes all required kernel data structures
+#ifndef YAKU_H
+#define YAKU_H
 
-void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority );//Creates a new task
+void YKInitialize();
+void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority );
+void YKRun();
+void YKDelayTask(unsigned int);
+void YKEnterMutex();
+void YKExitMutex();
+void YKEnterISR();
+void YKExitISR();
+void YKScheduler();
+void YKDispatcher();
+void YKTickHandler();
+void YKCtxSwCount();
+void YKIdleCount();
+void YKTickNum();
 
-void YKRun();// Starts actual execution of user code
+void printLinkedList(char* string);
 
-void YKDelayTask(unsigned int delay);// Delays a task for specified number of clock ticks
-
-void YKEnterMutex();// Disables interrupts
-
-void YKExitMutex();// Enables interrupts
-
+#endif
