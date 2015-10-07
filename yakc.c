@@ -20,9 +20,8 @@ bool runCalled = false;
 
 //doesn't need to be atomic
 void printLinkedList(char* string) {
-	TCBptr head = YKReadyList;
 	//string is user input to know what list is printing
-	TCBptr current = head;
+	TCBptr current = YKReadyList;
 	printNewLine();
 	printString("##############\n");
 	printString("contents of ");
@@ -108,7 +107,7 @@ void YKRun(){// Starts actual execution of user code
 	int i;
 	YKEnterMutex();
 	runCalled = true;
-	for(i = 1; i < TCBArrayNum; i++){//start at one since idle task is 0
+	for (i = 1; i < TCBArrayNum; i++) {//start at one since idle task is 0
 		adjustPriority(YKReadyList, &YKTCBArray[i], &YKReadyList);
 	}
 	runSched = true;
@@ -117,7 +116,7 @@ void YKRun(){// Starts actual execution of user code
 
 void YKDelayTask(unsigned int delayCount){// Delays task for specified number of clock ticks
 	YKEnterMutex();	
-	if(readyTask->tickDelay == 0){
+	if (readyTask->tickDelay == 0) {
 		runSched = true;
 	}	
 	readyTask->tickDelay += delayCount;
@@ -141,7 +140,7 @@ void YKExitISR(){// Called on exit from ISR
 }
 
 void YKScheduler(){// Determines the highest priority ready task
-	if(runSched){	
+	if (runSched) {	
 		runSched = false;
 		YKDispatcher();
 	}	
@@ -149,9 +148,27 @@ void YKScheduler(){// Determines the highest priority ready task
 
 
 void YKTickHandler(){// The kernel's timer tick interrupt handler
-  //for each of the delayed functions go through and decrement values
-  //if(TCB.TickDelay == 0)
-  //   addToReadyList();
+	TCBptr iter = YKDelayList;
+	TCPptr next = iter->next;
+	while (iter != NULL)
+		iter->tickDelay--;
+		if (iter->tickDelay <= 0) {			
+			if (iter->nextTCB != NULL) {
+				iter->nextTCB->prevTCB = iter->prevTCB;// reassign next pointer
+			}
+			if (iter->prevTCB != NULL) {
+				iter->prevTCB->nextTCB = iter->nextTCB;// reassign prev pointer
+				
+			} else {
+				YKDelayList = iter->nextTCB;// reassign the head
+			}
+			next = iter->next; // assign here because the next pointer will get globbered in the function
+			adjustPriority(YKReadyList, iter, &YKReadyList);
+		} else {	
+			next = iter->next;
+		}
+		iter = next;
+	}
 }
 
 void YKCtxSwCount(){// Global variable tracking context switches

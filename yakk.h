@@ -28,10 +28,12 @@ typedef struct taskBlock{//TCB data structure
 TCBptr readyTask;
 TCBptr YKReadyList;//linked list of ready tasks
 TCBptr YKSuspList;//linked list of Suspended tasks
+TCBptr YKDelayList;//linked list of delayed tasks
 TCBptr YKAvailList;//list of available tasks 
 TCB YKTCBArray[TASKNUMBER+1];
 int nestedDepth = 0;
 int idleCount = 0;
 int contextSwitchNum = 0;
+
 
 #endif

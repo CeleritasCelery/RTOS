@@ -18,11 +18,16 @@ void main(void)
 {
 	YKInitialize();
 	printChar('e');
-	YKNewTask(ATask, (void *)&AStk[ASTACKSIZE], 5);
-	YKNewTask(BTask, (void *)&BStk[BSTACKSIZE], 7);
-	printLinkedList("ready list before");
+	
+	printLinkedList("ready list before run");
 	YKRun();
-	printLinkedList("ready list after");
+	printLinkedList("ready list after run");
+	YKNewTask(BTask, (void *)&BStk[BSTACKSIZE], 7);
+	printLinkedList("ready list after b");
+	YKNewTask(CTask, (void *)&CStk[CSTACKSIZE], 2);
+	printLinkedList("ready list after c");
+	YKNewTask(ATask, (void *)&AStk[ASTACKSIZE], 5);
+	printLinkedList("ready list after a");
 	printString("should neve reach here\n");
 
 }
@@ -39,6 +44,13 @@ void ATask(void)
 
 void BTask(void)
 {
-    printString("Task B started! Oh no! Task B wasn't supposed to run.\n");
-    exit(0);
+	printString("Task B started! Oh no! Task B wasn't supposed to run.\n");
+	exit(0);
+}
+
+void CTask(void)
+{
+
+	printString("Task C started after ");
+	exit(0);
 }
