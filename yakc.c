@@ -1,11 +1,11 @@
 // yakc.c
 
-#include yaku.h
-#include yakk.h
-#include clib.h
+#include "yaku.h"
+#include "yakk.h"
+#include "clib.h"
 
 #define TaskStackSize 256
-
+#define INT_MAX 2^15
 #define IDLETASK 0
 #define ATASK 1
 #define BTASK 2
@@ -16,13 +16,32 @@ int idleTaskStack[TaskStackSize];
 int TCBArrayNum = 1;
 bool runSched = false;
 
+void adjustPriority(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList){
+    static int priorityDepth = 0;
+    if (listNode == NULL || toAdd == NULL)
+   	 return;
+    
+    if (listNode->priority > toAdd->priority) {
+   	 toAdd->prevTCB = listNode->prevTCB;
+   	 toAdd->nextTCB = listNode;
+   	 listNode->prevTCB->nextTCB = toAdd;
+   	 listNode->prevTCB = toAdd;
+   	 //listNode = toAdd;
+   	 if (priorityDepth == 0)
+   		 *topOfList = toAdd;
+    } else {
+   	 priorityDepth++;
+   	 adjustPriority(listNode->nextTCB, toAdd, topOfList);
+   	 priorityDepth--;
+    }
+}
+
 void YKInitialize(){// - Initializes all required kernel data structures
     //initialize task one data
     YKTCBArray[IDLETASK].priority = INT_MAX;
-    YKTCBArray[IDLETASK].SPtr = idleTaskStack[TaskStackSize-2];//256 + 1 - 3 (for iret)
+    YKTCBArray[IDLETASK].SPtr = (void *)idleTaskStack[TaskStackSize];//256 + 1 - 3 (for iret)
     YKTCBArray[IDLETASK].state = ready_st; //will be running
     YKTCBArray[IDLETASK].tickDelay = 0;
-//    currentTask = &YKTCBArray[IDLETASK];
     readyTask = &YKTCBArray[IDLETASK];
     YKReadyList = &YKTCBArray[IDLETASK];
 //    YKTCBArray[IDLETASK].prevTCB = NULL;
@@ -35,7 +54,7 @@ void YKInitialize(){// - Initializes all required kernel data structures
 void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Creates a new task
 	 
     YKTCBArray[TCBArrayNum].priority = priority;
-    YKTCBArray[TCBArrayNum].SPtr = taskStack + 254; //256 + 1 - 3 (for iret)
+    YKTCBArray[TCBArrayNum].SPtr = (void *)((int *)taskStack + 254); //256 + 1 - 3 (for iret)
     YKTCBArray[TCBArrayNum].state = ready_st; //will be running
     YKTCBArray[TCBArrayNum].tickDelay = 0;
     YKTCBArray[TCBArrayNum].nextInst = task;
@@ -45,36 +64,18 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
    	 runSched = true;
     }
     //need to set up the IP, Cs and flags
-    *YKTCBArray[TCBArrayNum].SPtr = task;
-    *(YKTCBArray[TCBArrayNum].SPtr+2)=0;//plus 2 because *void are size of char
-    *(YKTCBArray[TCBArrayNum].SPtr+4)=0;
+    *(int *)YKTCBArray[TCBArrayNum].SPtr = *(int *)task;
+    *((int *)YKTCBArray[TCBArrayNum].SPtr+2)=0;//plus 2 because *void are size of char
+    *((int *)YKTCBArray[TCBArrayNum].SPtr+4)=0;
     TCBArrayNum++;
 }
 
-void adjustPriority(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList){
-    static int priorityDepth = 0;
-    if (listNode == NULL || toADD == NULL)
-   	 return;
-    
-    if (listNode->priority > toAdd->priority) {
-   	 toAdd->prevTCB = listNode->prevTCB;
-   	 toAdd->nextTCB = listNode;
-   	 listNode->prevTCB->nextTCB = toAdd;
-   	 listNode->prevTCb = toAdd;
-   	 //listNode = toAdd;
-   	 if (priorityDepth == 0)
-   		 *topOfList = toAdd;
-    } else {
-   	 priorityDepth++;
-   	 adjustPriority(listNode->nextTCB, toAdd, topOfList);
-   	 priorityDepth--;
-    }
-}
+
 void YKRun(){// Starts actual execution of user code
 
 }
 
-void YKDelayTask(unsigned int){// Delays a task for specified number of clock ticks
+void YKDelayTask(unsigned int delay){// Delays a task for specified number of clock ticks
 
 }
 

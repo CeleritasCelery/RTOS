@@ -7,31 +7,35 @@ int contextSwitchNum = 0;
 #define TASKNUMBER 4
 #define true 1
 #define false 0
+#define NULL 0
 typedef char bool;
-typedef struct taskBlock *TCBptr;//struct pointer for TCB's and lists
 
-typedef struct taskBlock{//TCB data structure
+typedef struct task_block* TCBptr;//struct pointer for TCB's and lists
+
+typedef enum
+{
+	ready_st,
+	delayed_st
+} task_st;
+
+typedef struct task_block{//TCB data structure
   void * SPtr;
   void * nextInst;
-  task_st state;
   int priority;
   int tickDelay;
-  TCBptr prevTCB = NULL;
-  TCBptr nextTCB = NULL;
+  task_st state;
+  TCBptr prevTCB;
+  TCBptr nextTCB;
 } TCB;
-
-enum task_st{ready_st, delayed_st} curr_st = idle_st;
 
 //TCBptr currentTask;
 TCBptr readyTask;
 TCBptr YKReadyList;//linked list of ready tasks
 TCBptr YKSuspList;//linked list of Suspended tasks
 TCBptr YKAvailList;//list of available tasks
-bool
+
 TCB YKTCBArray[TASKNUMBER+1];
 int nestedDepth = 0;
-int idleCount = 0;
-int contextSwitchNum = 0;
 
 void YKTickHandler();// The kernel's timer tick interrupt handler
 

@@ -4,7 +4,7 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority );//Cr
 
 void YKRun();// Starts actual execution of user code
 
-void YKDelayTask(unsigned int);// Delays a task for specified number of clock ticks
+void YKDelayTask(unsigned int delay);// Delays a task for specified number of clock ticks
 
 void YKEnterMutex();// Disables interrupts
 
