@@ -11,9 +11,9 @@ InterruptVectorTable:
         dd      0                       ; Int 06h
         dd      0                       ; Int 07h
         ; Hardware Interrupts:
-        dd      0 ; Reset               ; Int 08h (IRQ 0)
-        dd      0 ; Tick                ; Int 09h (IRQ 1)
-        dd      0 ; Keyboard            ; Int 0Ah (IRQ 2)
+        dd      IsrReset ; Reset        ; Int 08h (IRQ 0)
+        dd      IsrTick ; Tick          ; Int 09h (IRQ 1)
+        dd      IsrKey ; Keyboard       ; Int 0Ah (IRQ 2)
         dd      0 ; Simptris Game Over  ; Int 0Bh (IRQ 3)
         dd      0 ; Simptris New Piece  ; Int 0Ch (IRQ 4)
         dd      0 ; Simptris Received   ; Int 0Dh (IRQ 5)

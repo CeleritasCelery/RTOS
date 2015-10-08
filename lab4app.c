@@ -1,6 +1,11 @@
+/* 
+File: lab4b_app.c
+Revision date: 23 December 2003
+Description: Application code for EE 425 lab 4B (Kernel essentials B)
+*/
 
-#include "yaku.h"
 #include "clib.h"
+#include "yaku.h"
 
 #define ASTACKSIZE 256          /* Size of each stack in words */
 #define BSTACKSIZE 256
@@ -16,41 +21,52 @@ void CTask(void);
 
 void main(void)
 {
-	YKInitialize();
-	printChar('e');
-	
-	printLinkedList("ready list before run");
-	YKRun();
-	printLinkedList("ready list after run");
-	YKNewTask(BTask, (void *)&BStk[BSTACKSIZE], 7);
-	printLinkedList("ready list after b");
-	YKNewTask(CTask, (void *)&CStk[CSTACKSIZE], 2);
-	printLinkedList("ready list after c");
-	YKNewTask(ATask, (void *)&AStk[ASTACKSIZE], 5);
-	printLinkedList("ready list after a");
-	printString("should neve reach here\n");
-
+    YKInitialize();
+    
+    printString("Creating task A...\n");
+    YKNewTask(ATask, (void *)&AStk[ASTACKSIZE], 5);
+    
+    printString("Starting kernel...\n");
+    YKRun();
 }
 
 void ATask(void)
 {
-	int i = 0;
-    	printString("Task A started!\n");
-	
-	while (i++ < 10000) {}
-	printLinkedList("ready list after");
-    	exit(0);
+    printString("Task A started!\n");
+
+    printString("Creating low priority task B...\n");
+    YKNewTask(BTask, (void *)&BStk[BSTACKSIZE], 7);
+
+    printString("Creating task C...\n");
+    YKNewTask(CTask, (void *)&CStk[CSTACKSIZE], 2);
+
+    printString("Task A is still running! Oh no! Task A was supposed to stop.\n");
+    exit(0);
 }
 
 void BTask(void)
 {
-	printString("Task B started! Oh no! Task B wasn't supposed to run.\n");
-	exit(0);
+    printString("Task B started! Oh no! Task B wasn't supposed to run.\n");
+    exit(0);
 }
 
 void CTask(void)
 {
+    int count;
+    unsigned numCtxSwitches;
 
-	printString("Task C started after ");
-	exit(0);
+    YKEnterMutex();
+    numCtxSwitches = YKCtxSwCount;
+    YKExitMutex();
+
+    printString("Task C started after ");
+    printUInt(numCtxSwitches);
+    printString(" context switches!\n");
+
+    while (1)
+    {
+	printString("Executing in task C.\n");
+        for(count = 0; count < 5000; count++);
+    }
 }
+

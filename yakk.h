@@ -12,7 +12,7 @@ typedef struct taskBlock *TCBptr;//struct pointer for TCB's and lists
 enum task_st {ready_st, delayed_st};
 typedef struct taskBlock{//TCB data structure
   void * SPtr;
-  void * nextInst;
+//  void * nextInst;
   enum task_st state;
   int priority;
   int tickDelay;
@@ -22,9 +22,9 @@ typedef struct taskBlock{//TCB data structure
   TCBptr nextTCB;
 } TCB;
 
+void idleTask(void);
 
-
-//TCBptr currentTask;
+TCBptr previousTask;
 TCBptr readyTask;
 TCBptr YKReadyList;//linked list of ready tasks
 TCBptr YKSuspList;//linked list of Suspended tasks
@@ -32,8 +32,8 @@ TCBptr YKDelayList;//linked list of delayed tasks
 TCBptr YKAvailList;//list of available tasks 
 TCB YKTCBArray[TASKNUMBER+1];
 int nestedDepth = 0;
-int idleCount = 0;
-int contextSwitchNum = 0;
+int YKIdleCount = 0;
 
 
 #endif
+

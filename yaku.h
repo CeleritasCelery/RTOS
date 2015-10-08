@@ -12,10 +12,13 @@ void YKExitISR();
 void YKScheduler();
 void YKDispatcher();
 void YKTickHandler();
-void YKCtxSwCount();
-void YKIdleCount();
+int getYKCtxSwCount();
+int getYKIdleCount();
 void YKTickNum();
 
-void printLinkedList(char* string);
+void printLinkedList(char* string, int list);
+
+extern YKCtxSwCount;
 
 #endif
+
