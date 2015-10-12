@@ -34,13 +34,10 @@ void ATask(void)
 {
     printString("Task A started!\n");
 
-    printString("Creating low priority task B...\n");
-    YKNewTask(BTask, (void *)&BStk[BSTACKSIZE], 7);
-
     printString("Creating task C...\n");
     YKNewTask(CTask, (void *)&CStk[CSTACKSIZE], 2);
 
-    printString("Task A is still running! Oh no! Task A was supposed to stop.\n");
+    printString("Task A is still running.\n");
     exit(0);
 }
 
@@ -52,21 +49,9 @@ void BTask(void)
 
 void CTask(void)
 {
-    int count;
-    unsigned numCtxSwitches;
-
-    YKEnterMutex();
-    numCtxSwitches = YKCtxSwCount;
-    YKExitMutex();
-
-    printString("Task C started after ");
-    printUInt(numCtxSwitches);
-    printString(" context switches!\n");
-
-    while (1)
-    {
-	printString("Executing in task C.\n");
-        for(count = 0; count < 5000; count++);
-    }
+	printString("Running Task C.\n");
+	YKDelayTask(10000);
+	printString("Task C is still running! Oh no! Task C was supposed to stop.\n");
+	exit(0);
 }
 
