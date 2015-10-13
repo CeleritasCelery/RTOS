@@ -24,6 +24,12 @@ void main(void)
     YKInitialize();
     
     printString("Creating task A...\n");
+    printIntHex(0xA9F1);
+    printNewLine();
+    printIntHex(0x1234);
+    printNewLine();
+    printIntHex(0xabcf);
+    printNewLine();
     YKNewTask(ATask, (void *)&AStk[ASTACKSIZE], 5);
     
     printString("Starting kernel...\n");

@@ -14,6 +14,20 @@ int TCBArrayNum = 1;
 bool runCalled = false;
 int YKCtxSwCount = 0;
 
+void printIntHex(int arg)
+{
+	char buf[6] = {0,0,0,0,'h','\0'};
+	char nibble = (arg >> 12) & 0x0F;
+	buf[0] = (nibble > 0x09) ? (nibble - 10) + 'A' : nibble + '0';
+	nibble = (arg >> 8) & 0x0F; 
+	buf[1] = (nibble > 0x09) ? (nibble - 10) + 'A' : nibble + '0';
+	nibble = (arg >> 4) & 0x0F; 
+	buf[2] = (nibble > 0x09) ? (nibble - 10) + 'A' : nibble + '0';
+	nibble = (arg >> 0) & 0x0F; 
+	buf[3] = (nibble > 0x09) ? (nibble - 10) + 'A' : nibble + '0';
+	printString(&buf[0]);
+}
+
 void printLinkedList(char* string, int list) {
     /*string is user input to know what list is printing
     print certainList  
@@ -118,6 +132,8 @@ void adjustPriority(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 void YKInitialize() {// - Initializes all required kernel data structures
 	//initialize task one data
 	YKEnterMutex();
+	printInt((int)&YKTCBArray[1]);
+	printNewLine();
 	YKTCBArray[IDLETASK].priority = IDLE_PRIORITY;
 	YKTCBArray[IDLETASK].SPtr = &idleTaskStack[TaskStackSize];//256
 	YKTCBArray[IDLETASK].state = ready_st; //will be running
@@ -246,10 +262,28 @@ void YKScheduler() {// Determines the highest priority ready task
 		//printString("TCB[0] = ");
 		//printInt((int)&YKTCBArray[IDLETASK]);
 		//printNewLine();
-		//printString("SP * = ");
-		//printInt(*(int *)YKReadyList);
-		//printNewLine();
-		YKDispatcher(*(int *)YKReadyList);
+		printString("SP[0] = ");
+		printInt((int)YKTCBArray[0].SPtr);
+		printNewLine();
+		printString("SP[1] = ");
+		printInt((int)YKTCBArray[1].SPtr);
+		printNewLine();
+		printString("SP[2] = ");
+		printInt((int)YKTCBArray[2].SPtr);
+		printNewLine();
+		printString("readyList sp = ");
+		printInt((int)YKReadyList->SPtr);
+		printNewLine();
+		YKDispatcher((int)YKReadyList->SPtr);
+		printString("aSP[0] = ");
+		printInt((int)YKTCBArray[0].SPtr);
+		printNewLine();
+		printString("aSP[1] = ");
+		printInt((int)YKTCBArray[1].SPtr);
+		printNewLine();
+		printString("aSP[2] = ");
+		printInt((int)YKTCBArray[2].SPtr);
+		printNewLine();
 	}	
 	YKEnterMutex();	
 }

@@ -8,15 +8,15 @@ lab4final.s:	clib.s myisr.s myinth.s lab4app.s yakc.s yaks.s
 		cat clib.s myisr.s myinth.s lab4app.s yakc.s yaks.s > lab4final.s
 
 lab4app.s:	lab4app.c
-		cpp lab4app.c lab4app.i
+		cpp -xc++ lab4app.c lab4app.i
 		c86 -g lab4app.i lab4app.s
 
 myinth.s:	myinth.c
-		cpp myinth.c myinth.i
+		cpp -xc++ myinth.c myinth.i
 		c86 -g myinth.i myinth.s
 
 yakc.s:	        yakc.c
-		cpp yakc.c yakc.i
+		cpp -xc++ yakc.c yakc.i
 		c86 -g yakc.i yakc.s
 
 clean:
