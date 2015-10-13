@@ -15,8 +15,10 @@ void YKTickHandler();
 int getYKCtxSwCount();
 int getYKIdleCount();
 void YKTickNum();
-void printIntHex(int arg);
 
+void printIntHex(int arg);
+//void printVar(char* name, int var, char base);
+void printATask(void);
 void printLinkedList(char* string, int list);
 
 extern YKCtxSwCount;

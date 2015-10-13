@@ -24,38 +24,42 @@ void main(void)
     YKInitialize();
     
     printString("Creating task A...\n");
-    printIntHex(0xA9F1);
-    printNewLine();
-    printIntHex(0x1234);
-    printNewLine();
-    printIntHex(0xabcf);
-    printNewLine();
+	//printATask();
     YKNewTask(ATask, (void *)&AStk[ASTACKSIZE], 5);
     
     printString("Starting kernel...\n");
+	//printATask();
+	printString("YKRun...\n");
     YKRun();
 }
 
 void ATask(void)
 {
     printString("Task A started!\n");
-
+	//printATask();
     printString("Creating task C...\n");
     YKNewTask(CTask, (void *)&CStk[CSTACKSIZE], 2);
-
-    printString("Task A is still running.\n");
+printString("return to A from C.\n");
+YKNewTask(BTask, (void *)&BStk[CSTACKSIZE], 1);
+	//printATask();
+    printString("returning to A to B.\n");
     exit(0);
 }
 
 void BTask(void)
 {
-    printString("Task B started! Oh no! Task B wasn't supposed to run.\n");
-    exit(0);
+    printString("Running Task B.\n");
+	//printATask();
+	YKDelayTask(10000);
+	printString("Task B is still running! Oh no! Task B was supposed to stop.\n");
+	exit(0);
 }
 
 void CTask(void)
 {
+	
 	printString("Running Task C.\n");
+	//printATask();
 	YKDelayTask(10000);
 	printString("Task C is still running! Oh no! Task C was supposed to stop.\n");
 	exit(0);

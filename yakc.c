@@ -5,12 +5,12 @@
 #define TaskStackSize 256
 
 #define IDLETASK 0
-#define IDLE_PRIORITY 10000
+#define IDLE_PRIORITY 101
 
-void dispatcher(int sp);
+void YKDispatcher();
 
 int idleTaskStack[TaskStackSize];
-int TCBArrayNum = 1;
+int TCBArrayNum = 0;
 bool runCalled = false;
 int YKCtxSwCount = 0;
 
@@ -26,6 +26,21 @@ void printIntHex(int arg)
 	nibble = (arg >> 0) & 0x0F; 
 	buf[3] = (nibble > 0x09) ? (nibble - 10) + 'A' : nibble + '0';
 	printString(&buf[0]);
+}
+
+void printVar(char* name, int var)
+{
+	printString(name);
+	printIntHex(var);
+        printNewLine();	
+}
+
+void printATask()
+{
+	printVar("task A sp = ", (int)YKTCBArray[1].SPtr);
+	printVar("ready task sp = ", (int)currentTask->SPtr);
+	printVar("ready task = ", *(int *)currentTask);
+	printVar("YKReadylist sp = ", (int)YKReadyList->SPtr);
 }
 
 void printLinkedList(char* string, int list) {
@@ -132,43 +147,9 @@ void adjustPriority(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 void YKInitialize() {// - Initializes all required kernel data structures
 	//initialize task one data
 	YKEnterMutex();
-	printInt((int)&YKTCBArray[1]);
-	printNewLine();
-	YKTCBArray[IDLETASK].priority = IDLE_PRIORITY;
-	YKTCBArray[IDLETASK].SPtr = &idleTaskStack[TaskStackSize];//256
-	YKTCBArray[IDLETASK].state = ready_st; //will be running
-	YKTCBArray[IDLETASK].tickDelay = 0;
-	YKTCBArray[IDLETASK].prevTCB = NULL;
-	YKTCBArray[IDLETASK].nextTCB = NULL;
-	//saving the stack frame 
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // flags
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // CS
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = (int)idleTask; // IP
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = (int)(&idleTaskStack[TaskStackSize]); // bp
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // as
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // bx
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // cx
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // dx
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // si
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // di
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // es
-	*--((int *)YKTCBArray[IDLETASK].SPtr) = 0; // ds
-	/*printString("idle IP = ");
-        printInt((int)idleTask);
-	printNewLine();
-	printString("idle SP = ");
-        printInt((int)YKTCBArray[IDLETASK].SPtr);
-	printNewLine();
-	printString("idle BP = ");
-        printInt((int)&idleTaskStack[TaskStackSize]);
-	printNewLine();
-	printString("YKready * = ");
-        printInt((int)*(int *)YKReadyList);
-	printNewLine();
-	*/
-
-	readyTask = NULL;
+	currentTask = NULL;
 	YKReadyList = &YKTCBArray[IDLETASK];
+	YKNewTask(idleTask, (void *)&idleTaskStack[TaskStackSize], IDLE_PRIORITY); 
 	YKExitMutex();
 }
 
@@ -178,7 +159,6 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 	YKTCBArray[TCBArrayNum].SPtr = (void *)((int *)taskStack); //(for iret)
 	YKTCBArray[TCBArrayNum].state = ready_st; //will be running
 	YKTCBArray[TCBArrayNum].tickDelay = 0;
-	//YKTCBArray[TCBArrayNum].nextInst = task;
 	YKTCBArray[TCBArrayNum].prevTCB = NULL;
 	YKTCBArray[TCBArrayNum].nextTCB = NULL;
 	//saving the stack frame 
@@ -195,7 +175,6 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = 0; // es
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = 0; // ds
 
-	//saveContext();//need to save registers to stack so it is in same state when return
 	if (runCalled) {
 	//if the top of ready Task list is less priority need to switch the priority
 		adjustPriority(YKReadyList, &YKTCBArray[TCBArrayNum], &YKReadyList);
@@ -219,10 +198,10 @@ void YKRun(){// Starts actual execution of user code
 
 void YKDelayTask(unsigned int delayCount){// Delays task for specified number of clock ticks
 	YKEnterMutex();	
-	readyTask->tickDelay += delayCount;
+	currentTask->tickDelay += delayCount;
 	if (delayCount) {
-		deleteFromLinkedList(YKReadyList, &YKReadyList, readyTask->priority);
-		adjustPriority(YKDelayList, readyTask, &YKDelayList);
+		deleteFromLinkedList(YKReadyList, &YKReadyList, currentTask->priority);
+		adjustPriority(YKDelayList, currentTask, &YKDelayList);
 		
 	}	
 	YKExitMutex();
@@ -250,40 +229,9 @@ void YKExitISR(){// Called on exit from ISR
 
 void YKScheduler() {// Determines the highest priority ready task
 	YKEnterMutex();	
-	if (YKReadyList != readyTask) {// readyTask has to be equal to the stack we are on
-		//printString("running schedualer \n");
+	if (YKReadyList != currentTask) {// currentTask has to be equal to the stack we are on
 		YKCtxSwCount++;
-		previousTask = readyTask;
-		readyTask = YKReadyList;
-
-		//printString("YKReadyList = ");
-		//printInt((int)YKReadyList);
-		//printNewLine();
-		//printString("TCB[0] = ");
-		//printInt((int)&YKTCBArray[IDLETASK]);
-		//printNewLine();
-		printString("SP[0] = ");
-		printInt((int)YKTCBArray[0].SPtr);
-		printNewLine();
-		printString("SP[1] = ");
-		printInt((int)YKTCBArray[1].SPtr);
-		printNewLine();
-		printString("SP[2] = ");
-		printInt((int)YKTCBArray[2].SPtr);
-		printNewLine();
-		printString("readyList sp = ");
-		printInt((int)YKReadyList->SPtr);
-		printNewLine();
-		YKDispatcher((int)YKReadyList->SPtr);
-		printString("aSP[0] = ");
-		printInt((int)YKTCBArray[0].SPtr);
-		printNewLine();
-		printString("aSP[1] = ");
-		printInt((int)YKTCBArray[1].SPtr);
-		printNewLine();
-		printString("aSP[2] = ");
-		printInt((int)YKTCBArray[2].SPtr);
-		printNewLine();
+		YKDispatcher();
 	}	
 	YKEnterMutex();	
 }

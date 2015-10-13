@@ -13,8 +13,12 @@ YKDispatcher:
 	push 	di
 	push 	es
 	push 	ds
-	mov	word [previousTask], sp	      ;save sp of 
-	mov	sp, word [bp+8]  ;change the context to new sp is the in address
+	mov	si, word [currentTask]
+	mov	word [si], sp
+	mov	si, word [YKReadyList]
+	mov	word [currentTask], si ;change the context to new task
+	mov	si, word [currentTask] 
+	mov	sp, word [si]
 	mov 	al, 0x20
 	out	0x20, al ; write to pic
 	pop 	ds
