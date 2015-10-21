@@ -162,16 +162,16 @@ void addToLinkedList(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 }
 
 void YKInitialize() {// - Initializes all required kernel data structures
-	//initialize task one data
 	YKEnterMutex();
+	//initialize task one data
 	currentTask = NULL;
 	YKReadyList = &YKTCBArray[IDLETASK];
 	YKNewTask(idleTask, (void *)&idleTaskStack[TaskStackSize], IDLE_PRIORITY); 
-	YKExitMutex();
 }
 
 void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Creates a new task
- 	YKEnterMutex();	
+	if (runCalled)
+ 		YKEnterMutex();	
 	YKTCBArray[TCBArrayNum].priority = priority;
 	YKTCBArray[TCBArrayNum].SPtr = (void *)((int *)taskStack); //(for iret)
 	YKTCBArray[TCBArrayNum].state = ready_st; //will be running
@@ -197,8 +197,12 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 		addToLinkedList(YKReadyList, &YKTCBArray[TCBArrayNum], &YKReadyList);
 	}
 	TCBArrayNum++;
-	YKExitMutex();
-	if (runCalled) 	YKScheduler();
+	
+	if (runCalled) {
+		
+		YKScheduler();
+		YKExitMutex();
+	}
 }
 
 
@@ -209,8 +213,9 @@ void YKRun(){// Starts actual execution of user code
 	for (i = 1; i < TCBArrayNum; i++) {//start at one since idle task is 0
 		addToLinkedList(YKReadyList, &YKTCBArray[i], &YKReadyList);
 	}
-	YKExitMutex();
+	
 	YKScheduler();
+	YKExitMutex();
 } 
 
 void YKDelayTask(unsigned int delayCount){// Delays task for specified number of clock ticks
@@ -223,8 +228,9 @@ void YKDelayTask(unsigned int delayCount){// Delays task for specified number of
 		//printLinkedList("delay list", 1);
 		//printLinkedList("ready list", 0);
 	}	
-	YKExitMutex();
+	
 	YKScheduler();
+	YKExitMutex();
 }
 
 void YKEnterMutex(){// Disables interrupts
@@ -247,24 +253,25 @@ void YKExitISR(){// Called on exit from ISR
 }
 
 void YKScheduler() {// Determines the highest priority ready task
-	YKEnterMutex();	
 	if (YKReadyList != currentTask) {// currentTask has to be equal to the stack we are on
 		YKCtxSwCount++;
 		YKDispatcher();
 	}	
-	YKExitMutex();	
 }
 
 
 void YKTickHandler() {// The kernel's timer tick interrupt handler
 	TCBptr iter;
 	TCBptr next;
-	static tick = 1;
+	static unsigned int tick = 1;
+	
 	YKEnterMutex();		
 	iter = YKDelayList;
 	next = iter->nextTCB;
 	printNewLine();
-	printVar("Tick ", tick);
+	printString("Tick ");
+	printUInt(tick);
+	printNewLine();
 //	printLinkedList("delay list", 1);
 //	printLinkedList("ready list", 0);
 
