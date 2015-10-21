@@ -24,15 +24,13 @@ typedef struct taskBlock{//TCB data structure
 
 void idleTask(void);
 
-TCBptr previousTask;
-TCBptr currentTask;
-TCBptr YKReadyList;//linked list of ready tasks
-TCBptr YKSuspList;//linked list of Suspended tasks
-TCBptr YKDelayList;//linked list of delayed tasks
-TCBptr YKAvailList;//list of available tasks 
-struct taskBlock YKTCBArray[TASKNUMBER+1];
-int nestedDepth = 0;
-int YKIdleCount = 0;
+extern TCBptr currentTask;
+extern TCBptr YKReadyList;//linked list of ready tasks
+extern TCBptr YKSuspList;//linked list of Suspended tasks
+extern TCBptr YKDelayList;//linked list of delayed tasks
+extern TCBptr YKAvailList;//list of available tasks 
+extern struct taskBlock YKTCBArray[TASKNUMBER+1];
+extern int YKIdleCount;
 
 
 #endif

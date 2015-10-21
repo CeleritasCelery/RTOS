@@ -9,6 +9,15 @@
 
 void YKDispatcher();
 
+TCBptr currentTask;
+TCBptr YKReadyList;//linked list of ready tasks
+TCBptr YKSuspList;//linked list of Suspended tasks
+TCBptr YKDelayList;//linked list of delayed tasks
+TCBptr YKAvailList;//list of available tasks 
+struct taskBlock YKTCBArray[TASKNUMBER+1];
+int nestedDepth = 0;
+int YKIdleCount = 0;
+
 int idleTaskStack[TaskStackSize];
 int TCBArrayNum = 0;
 bool runCalled = false;
@@ -31,16 +40,15 @@ void printIntHex(int arg)
 void printVar(char* name, int var)
 {
 	printString(name);
-	printIntHex(var);
-        printNewLine();	
+	printInt(var);
+    printNewLine();	
 }
 
-void printATask()
+void printVarHex(char* name, int var)
 {
-	printVar("task A sp = ", (int)YKTCBArray[1].SPtr);
-	printVar("ready task sp = ", (int)currentTask->SPtr);
-	printVar("ready task = ", *(int *)currentTask);
-	printVar("YKReadylist sp = ", (int)YKReadyList->SPtr);
+	printString(name);
+	printIntHex(var);
+    printNewLine();	
 }
 
 void printLinkedList(char* string, int list) {
@@ -105,8 +113,7 @@ void deleteFromLinkedList(TCBptr listNode, TCBptr *topOfList, int deletePriority
 		return;
 
 	if (listNode->priority == deletePriority) {    
-		if (priorityDepth == 0) {
-		    
+		if (priorityDepth == 0) {	    
 			listNode->nextTCB->prevTCB = NULL;
 			*topOfList = listNode->nextTCB; 
 			listNode->nextTCB = NULL;           
@@ -121,10 +128,17 @@ void deleteFromLinkedList(TCBptr listNode, TCBptr *topOfList, int deletePriority
 	}
 }
 
-void adjustPriority(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
+void addToLinkedList(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 	static int priorityDepth = 0;
-	if (listNode == NULL || toAdd == NULL)
+	if (toAdd == NULL)
 		return;
+
+	if (listNode == NULL && priorityDepth == 0) {
+		toAdd->nextTCB = NULL;
+		toAdd->prevTCB = NULL;
+		*topOfList = toAdd;	
+		return;
+	}
 	
 	if (listNode->priority > toAdd->priority) {
 		toAdd->prevTCB = listNode->prevTCB;
@@ -137,9 +151,12 @@ void adjustPriority(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 			listNode->prevTCB->nextTCB = toAdd;
 			listNode->prevTCB = toAdd;
 		}
-	} else {
+	} else if (listNode->nextTCB == NULL){
+		listNode->nextTCB = toAdd;
+		toAdd->prevTCB = listNode;
+	}	else {
 		priorityDepth++;
-		adjustPriority(listNode->nextTCB, toAdd, topOfList);
+		addToLinkedList(listNode->nextTCB, toAdd, topOfList);
 		priorityDepth--;	
 	}
 }
@@ -177,7 +194,7 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 
 	if (runCalled) {
 	//if the top of ready Task list is less priority need to switch the priority
-		adjustPriority(YKReadyList, &YKTCBArray[TCBArrayNum], &YKReadyList);
+		addToLinkedList(YKReadyList, &YKTCBArray[TCBArrayNum], &YKReadyList);
 	}
 	TCBArrayNum++;
 	YKExitMutex();
@@ -190,7 +207,7 @@ void YKRun(){// Starts actual execution of user code
 	YKEnterMutex();
 	runCalled = true;
 	for (i = 1; i < TCBArrayNum; i++) {//start at one since idle task is 0
-		adjustPriority(YKReadyList, &YKTCBArray[i], &YKReadyList);
+		addToLinkedList(YKReadyList, &YKTCBArray[i], &YKReadyList);
 	}
 	YKExitMutex();
 	YKScheduler();
@@ -198,22 +215,24 @@ void YKRun(){// Starts actual execution of user code
 
 void YKDelayTask(unsigned int delayCount){// Delays task for specified number of clock ticks
 	YKEnterMutex();	
-	currentTask->tickDelay += delayCount;
+	//printVar("calling delay task with delay ", delayCount);
+	currentTask->tickDelay = delayCount;
 	if (delayCount) {
 		deleteFromLinkedList(YKReadyList, &YKReadyList, currentTask->priority);
-		adjustPriority(YKDelayList, currentTask, &YKDelayList);
-		
+		addToLinkedList(YKDelayList, currentTask, &YKDelayList);
+		//printLinkedList("delay list", 1);
+		//printLinkedList("ready list", 0);
 	}	
 	YKExitMutex();
 	YKScheduler();
 }
 
 void YKEnterMutex(){// Disables interrupts
-  asm("cli");
+	asm("cli");
 }
 
 void YKExitMutex(){// Enables interrupts
-  asm("sti");
+	asm("sti");
 }
 
 void YKEnterISR(){// Called on entry to ISR 	
@@ -233,41 +252,35 @@ void YKScheduler() {// Determines the highest priority ready task
 		YKCtxSwCount++;
 		YKDispatcher();
 	}	
-	YKEnterMutex();	
+	YKExitMutex();	
 }
 
 
 void YKTickHandler() {// The kernel's timer tick interrupt handler
 	TCBptr iter;
 	TCBptr next;
-	static tick = 0;
+	static tick = 1;
 	YKEnterMutex();		
 	iter = YKDelayList;
 	next = iter->nextTCB;
-	printString("tick ");
-	printInt(tick);
 	printNewLine();
+	printVar("Tick ", tick);
+//	printLinkedList("delay list", 1);
+//	printLinkedList("ready list", 0);
+
 	tick++;
 	while (iter != NULL){
 		iter->tickDelay--;
-		if (iter->tickDelay <= 0) {			
-			if (iter->nextTCB != NULL) {
-				iter->nextTCB->prevTCB = iter->prevTCB;// reassign next pointer
-			}
-			if (iter->prevTCB != NULL) {
-				iter->prevTCB->nextTCB = iter->nextTCB;// reassign prev pointer
-				
-			} else {
-				YKDelayList = iter->nextTCB;// reassign the head
-			}
-			next = iter->nextTCB; // assign here because the next pointer will get globbered in the function
-			adjustPriority(YKReadyList, iter, &YKReadyList);
+		if (iter->tickDelay <= 0) {
+			next = iter->nextTCB; // assign here because the next pointer will get globbered in the function	
+			//printVar("calling delay task with prority ", iter->priority);	
+			deleteFromLinkedList(YKDelayList, &YKDelayList, iter->priority);
+			addToLinkedList(YKReadyList, iter, &YKReadyList);
 		} else {	
 			next = iter->nextTCB;
 		}
 		iter = next;
 	}
-
 	YKExitMutex();	
 }
 
@@ -280,10 +293,9 @@ int getYKIdleCount(){// Global variable used by idle task
 }
 
 void idleTask(void) {
+	//printString("Entering Idle Task\n");
+	YKExitMutex();	
 	while(1) {
-		printInt(YKIdleCount);
 		YKIdleCount++;
-		if (YKIdleCount > 10000)
-			exit(0);
 	}
 }

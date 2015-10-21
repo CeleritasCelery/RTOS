@@ -8,9 +8,11 @@ IsrTick:
 	push 	bp
 	push 	es
 	push 	ds
+	call 	YKEnterISR
 	sti	
 	call    YKTickHandler
 	cli
+	call	YKExitISR
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
 	pop 	ds
