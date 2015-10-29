@@ -3,24 +3,31 @@
 #define YAKK_H
 
 #define TASKNUMBER 4
+#define MAX_SEMAPHORE 5
 #define true 1
 #define false 0
 #define NULL 0
 
 typedef char bool;
-typedef struct taskBlock *TCBptr;//struct pointer for TCB's and lists
+
 enum task_st {ready_st, delayed_st};
-typedef struct taskBlock{//TCB data structure
+
+typedef struct taskblock* TCBptr;// struct pointer for TCB's and lists
+typedef struct taskblock {// TCB data structure
   void * SPtr;
-//  void * nextInst;
   enum task_st state;
   int priority;
   int tickDelay;
-//  TCBptr prevTCB = NULL;
-//  TCBptr nextTCB = NULL;
   TCBptr prevTCB;
   TCBptr nextTCB;
 } TCB;
+
+
+typedef struct semaphore {
+	int value;
+	TCBptr pendingList;
+} YKSEM;
+
 
 void idleTask(void);
 
@@ -29,9 +36,15 @@ extern TCBptr YKReadyList;//linked list of ready tasks
 extern TCBptr YKSuspList;//linked list of Suspended tasks
 extern TCBptr YKDelayList;//linked list of delayed tasks
 extern TCBptr YKAvailList;//list of available tasks 
-extern struct taskBlock YKTCBArray[TASKNUMBER+1];
+extern TCB YKTCBArray[TASKNUMBER+1];
 extern int YKIdleCount;
 
+//semaphore
+YKSEM* YKSemCreate(int init);
+void YKSemPend(YKSEM* sem);
+void YKSemPost(YKSEM* sem);
+extern YKSEM YKSEMArray[MAX_SEMAPHORE];
 
-#endif
+
+#endif // YAKK_H
 

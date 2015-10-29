@@ -14,7 +14,7 @@ TCBptr YKReadyList;//linked list of ready tasks
 TCBptr YKSuspList;//linked list of Suspended tasks
 TCBptr YKDelayList;//linked list of delayed tasks
 TCBptr YKAvailList;//list of available tasks 
-struct taskBlock YKTCBArray[TASKNUMBER+1];
+TCB YKTCBArray[TASKNUMBER+1];
 int nestedDepth = 0;
 int YKIdleCount = 0;
 
@@ -22,6 +22,10 @@ int idleTaskStack[TaskStackSize];
 int TCBArrayNum = 0;
 bool runCalled = false;
 int YKCtxSwCount = 0;
+
+//semaphores
+YKSEM YKSEMArray[MAX_SEMAPHORE];
+int semaphoreCount = 0;
 
 void printIntHex(int arg)
 {
@@ -220,13 +224,10 @@ void YKRun(){// Starts actual execution of user code
 
 void YKDelayTask(unsigned int delayCount){// Delays task for specified number of clock ticks
 	YKEnterMutex();	
-	//printVar("calling delay task with delay ", delayCount);
 	currentTask->tickDelay = delayCount;
 	if (delayCount) {
 		deleteFromLinkedList(YKReadyList, &YKReadyList, currentTask->priority);
 		addToLinkedList(YKDelayList, currentTask, &YKDelayList);
-		//printLinkedList("delay list", 1);
-		//printLinkedList("ready list", 0);
 	}	
 	
 	YKScheduler();
@@ -272,15 +273,12 @@ void YKTickHandler() {// The kernel's timer tick interrupt handler
 	printString("Tick ");
 	printUInt(tick);
 	printNewLine();
-//	printLinkedList("delay list", 1);
-//	printLinkedList("ready list", 0);
 
 	tick++;
 	while (iter != NULL){
 		iter->tickDelay--;
 		if (iter->tickDelay <= 0) {
 			next = iter->nextTCB; // assign here because the next pointer will get globbered in the function	
-			//printVar("calling delay task with prority ", iter->priority);	
 			deleteFromLinkedList(YKDelayList, &YKDelayList, iter->priority);
 			addToLinkedList(YKReadyList, iter, &YKReadyList);
 		} else {	
@@ -296,13 +294,24 @@ int getYKCtxSwCount(){// Global variable tracking context switches
 }
 
 int getYKIdleCount(){// Global variable used by idle task
-         return YKIdleCount;
+	return YKIdleCount;
 }
 
 void idleTask(void) {
-	//printString("Entering Idle Task\n");
 	YKExitMutex();	
 	while(1) {
 		YKIdleCount++;
 	}
+}
+
+
+YKSEM* YKSemCreate(int init)
+{
+	if (semaphoreCount >= MAX_SEMAPHORE)
+		return NULL;
+
+	YKSEMArray[semaphoreCount].value = init;
+	YKSEMArray[semaphoreCount].pendingList = NULL;
+	semaphoreCount++;
+	return &YKSEMArray[semaphoreCount];
 }
