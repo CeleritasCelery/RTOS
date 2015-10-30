@@ -74,7 +74,6 @@ void TaskPrime(void)            /* task that actually computes primes */
     int curval = 1001;
     int j,flag,lncnt;
     int endval;
-    
     while (1)
     {
         YKSemPend(NSemPtr);
@@ -121,13 +120,14 @@ void TaskStat(void)                /* a task to track statistics */
     YKIdleCount = 0;
     YKDelayTask(5);
     max = YKIdleCount / 25;
+	
     YKIdleCount = 0;
 
     YKNewTask(TaskPrime, (void *) &TaskPRMStk[TASK_STACK_SIZE], 32);
     YKNewTask(TaskWord,  (void *) &TaskWStk[TASK_STACK_SIZE], 10);
     YKNewTask(TaskSpace, (void *) &TaskSStk[TASK_STACK_SIZE], 11);
     YKNewTask(TaskPunc,  (void *) &TaskPStk[TASK_STACK_SIZE], 12);
-    
+  
     while (1)
     {
         YKDelayTask(20);
@@ -161,6 +161,6 @@ void main(void)
     WSemPtr = YKSemCreate(0);
     NSemPtr = YKSemCreate(0);
     YKNewTask(TaskStat, (void *) &TaskStatStk[TASK_STACK_SIZE], 30);
-    
+
     YKRun();
 }

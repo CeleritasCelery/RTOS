@@ -16,7 +16,7 @@ TCBptr YKDelayList;//linked list of delayed tasks
 TCBptr YKAvailList;//list of available tasks 
 TCB YKTCBArray[TASKNUMBER+1];
 int nestedDepth = 0;
-int YKIdleCount = 0;
+unsigned int YKIdleCount = 0;
 
 int idleTaskStack[TaskStackSize];
 int TCBArrayNum = 0;
@@ -98,6 +98,26 @@ void printLinkedList(char* string, int list) {
     printString(nameOfList);
     printNewLine();
     printString(string);
+    while (current != NULL) {
+        printString("\nPriority = ");
+        printInt(current->priority);
+        printString(" TickDelay = ");
+        printInt(current->tickDelay);
+        printString(" State = ");
+        printInt(current->state);
+        current = current->nextTCB;
+    }
+    printNewLine();
+      printString("##############\n");
+}
+
+void printSemList(char* string, YKSEM* sem){
+    TCBptr current = sem->pendingList;
+    printNewLine();
+    printString("##############\n");
+    printString(string);
+	printNewLine();
+	printVar("value = ",sem->value);
     while (current != NULL) {
         printString("\nPriority = ");
         printInt(current->priority);
@@ -299,14 +319,13 @@ int getYKCtxSwCount(){// Global variable tracking context switches
 	return YKCtxSwCount;
 }
 
-int getYKIdleCount(){// Global variable used by idle task
-	return YKIdleCount;
-}
-
 void idleTask(void) {
-	YKExitMutex();	
+	int i;
+	asm ("sti");	
 	while(1) {
+		i = 0;
 		YKIdleCount++;
+		while (i++ < 10 );
 	}
 }
 
@@ -316,6 +335,7 @@ void YKSemPend(YKSEM* sem)
 	if (sem->value-- <= 0) {
 		deleteFromLinkedList(&YKReadyList, currentTask);
 		addToLinkedList(&sem->pendingList, currentTask);
+		//printSemList("pend", sem);
 		YKScheduler(); // can switch context here?
 	}
 	YKExitMutex();
@@ -328,7 +348,8 @@ void YKSemPost(YKSEM* sem)
 	if (sem->pendingList) {// will be null if empty?
 		TCBptr task = sem->pendingList;
 		deleteFromLinkedList(&sem->pendingList, task); // right thing to remove?
-		addToLinkedList(&YKReadyList, task); 
+		addToLinkedList(&YKReadyList, task);
+		//printSemList("post", sem); 
 		YKScheduler();
 	}
 	YKExitMutex();
@@ -342,6 +363,5 @@ YKSEM* YKSemCreate(int init)
 
 	YKSEMArray[semaphoreCount].value = init;
 	YKSEMArray[semaphoreCount].pendingList = NULL;
-	semaphoreCount++;
-	return &YKSEMArray[semaphoreCount];
+	return &YKSEMArray[semaphoreCount++];
 }

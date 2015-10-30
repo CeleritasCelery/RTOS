@@ -134,16 +134,19 @@ Description: Application code for EE 425 lab 4D (Kernel essentials D)
 #define BSTACKSIZE 256
 #define CSTACKSIZE 256
 #define DSTACKSIZE 256
+#define ESTACKSIZE 256
 
 int AStk[ASTACKSIZE];           // Space for each task's stack  
 int BStk[BSTACKSIZE];
 int CStk[CSTACKSIZE];
-int DStk[CSTACKSIZE];
+int DStk[DSTACKSIZE];
+int EStk[ESTACKSIZE];
 
 void ATask(void);               // Function prototypes for task code 
 void BTask(void);
 void CTask(void);
 void DTask(void);
+void ETask(void);
 
 void main(void)
 {
@@ -154,6 +157,7 @@ void main(void)
     YKNewTask(BTask, (void *) &BStk[BSTACKSIZE], 5);
     YKNewTask(CTask, (void *) &CStk[CSTACKSIZE], 7);
     YKNewTask(DTask, (void *) &DStk[DSTACKSIZE], 8);
+	YKNewTask(ETask, (void *) &EStk[ESTACKSIZE], 9);
     
 	printString("Starting kernel...\n");
     YKRun();
@@ -196,6 +200,16 @@ void DTask(void)
     {
         printString("Task D, delaying 10.\n");
         YKDelayTask(10);
+    }
+}
+
+void ETask(void)
+{
+    printString("Task E started.\n");
+    while (1)
+    {
+        printString("Task E, delaying 20.\n");
+        YKDelayTask(20);
     }
 }
 

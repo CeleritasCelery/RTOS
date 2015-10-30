@@ -2,7 +2,7 @@
 #ifndef YAKK_H
 #define YAKK_H
 
-#define TASKNUMBER 4
+#define TASKNUMBER 6
 #define MAX_SEMAPHORE 5
 #define true 1
 #define false 0
@@ -37,13 +37,14 @@ extern TCBptr YKSuspList;//linked list of Suspended tasks
 extern TCBptr YKDelayList;//linked list of delayed tasks
 extern TCBptr YKAvailList;//list of available tasks 
 extern TCB YKTCBArray[TASKNUMBER+1];
-extern int YKIdleCount;
+extern unsigned int YKIdleCount;
 
 //semaphore
 YKSEM* YKSemCreate(int init);
 void YKSemPend(YKSEM* sem);
 void YKSemPost(YKSEM* sem);
 extern YKSEM YKSEMArray[MAX_SEMAPHORE];
+void printSemList(char* string, YKSEM* sem);
 
 
 #endif // YAKK_H
