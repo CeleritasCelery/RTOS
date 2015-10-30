@@ -111,12 +111,12 @@ void printLinkedList(char* string, int list) {
       printString("##############\n");
 }
 
-void deleteFromLinkedList(TCBptr listNode, TCBptr *topOfList, int deletePriority) {
+void deleteFromLinkedList_recurse(TCBptr listNode, TCBptr *topOfList, TCBptr toDelete) {
     static int priorityDepth = 0;
 	if (listNode == NULL)
 		return;
 
-	if (listNode->priority == deletePriority) {    
+	if (listNode == toDelete) {    
 		if (priorityDepth == 0) {	    
 			listNode->nextTCB->prevTCB = NULL;
 			*topOfList = listNode->nextTCB; 
@@ -127,12 +127,16 @@ void deleteFromLinkedList(TCBptr listNode, TCBptr *topOfList, int deletePriority
 		}
 	} else {
 		priorityDepth++;
-		deleteFromLinkedList(listNode->nextTCB, topOfList, deletePriority);
+		deleteFromLinkedList_recurse(listNode->nextTCB, topOfList, toDelete);
 		priorityDepth--;    
 	}
 }
+void deleteFromLinkedList(TCBptr *List, TCBptr toDelete) {
+	deleteFromLinkedList_recurse(*List, List, toDelete);
+}
 
-void addToLinkedList(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
+
+void addToLinkedList_recurse(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 	static int priorityDepth = 0;
 	if (toAdd == NULL)
 		return;
@@ -160,9 +164,13 @@ void addToLinkedList(TCBptr listNode, TCBptr toAdd, TCBptr *topOfList) {
 		toAdd->prevTCB = listNode;
 	}	else {
 		priorityDepth++;
-		addToLinkedList(listNode->nextTCB, toAdd, topOfList);
+		addToLinkedList_recurse(listNode->nextTCB, toAdd, topOfList);
 		priorityDepth--;	
 	}
+}
+
+void addToLinkedList(TCBptr *List, TCBptr toAdd) {
+	addToLinkedList_recurse(*List, toAdd, List);
 }
 
 void YKInitialize() {// - Initializes all required kernel data structures
@@ -198,7 +206,7 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 
 	if (runCalled) {
 	//if the top of ready Task list is less priority need to switch the priority
-		addToLinkedList(YKReadyList, &YKTCBArray[TCBArrayNum], &YKReadyList);
+		addToLinkedList(&YKReadyList, &YKTCBArray[TCBArrayNum]);
 	}
 	TCBArrayNum++;
 	
@@ -215,7 +223,7 @@ void YKRun(){// Starts actual execution of user code
 	YKEnterMutex();
 	runCalled = true;
 	for (i = 1; i < TCBArrayNum; i++) {//start at one since idle task is 0
-		addToLinkedList(YKReadyList, &YKTCBArray[i], &YKReadyList);
+		addToLinkedList(&YKReadyList, &YKTCBArray[i]);
 	}
 	
 	YKScheduler();
@@ -226,8 +234,8 @@ void YKDelayTask(unsigned int delayCount){// Delays task for specified number of
 	YKEnterMutex();	
 	currentTask->tickDelay = delayCount;
 	if (delayCount) {
-		deleteFromLinkedList(YKReadyList, &YKReadyList, currentTask->priority);
-		addToLinkedList(YKDelayList, currentTask, &YKDelayList);
+		deleteFromLinkedList(&YKReadyList, currentTask);
+		addToLinkedList(&YKDelayList, currentTask);
 	}	
 	
 	YKScheduler();
@@ -277,13 +285,11 @@ void YKTickHandler() {// The kernel's timer tick interrupt handler
 	tick++;
 	while (iter != NULL){
 		iter->tickDelay--;
+		next = iter->nextTCB; // assign here because the next pointer will get globbered if branch taken	
 		if (iter->tickDelay <= 0) {
-			next = iter->nextTCB; // assign here because the next pointer will get globbered in the function	
-			deleteFromLinkedList(YKDelayList, &YKDelayList, iter->priority);
-			addToLinkedList(YKReadyList, iter, &YKReadyList);
-		} else {	
-			next = iter->nextTCB;
-		}
+			deleteFromLinkedList(&YKDelayList, iter);
+			addToLinkedList(&YKReadyList, iter);
+		} 
 		iter = next;
 	}
 	YKExitMutex();	
@@ -304,10 +310,34 @@ void idleTask(void) {
 	}
 }
 
+void YKSemPend(YKSEM* sem)
+{
+	YKEnterMutex();
+	if (sem->value-- <= 0) {
+		deleteFromLinkedList(&YKReadyList, currentTask);
+		addToLinkedList(&sem->pendingList, currentTask);
+		YKScheduler(); // can switch context here?
+	}
+	YKExitMutex();
+}
+
+void YKSemPost(YKSEM* sem)
+{
+	YKEnterMutex();
+	sem->value++;	
+	if (sem->pendingList) {// will be null if empty?
+		TCBptr task = sem->pendingList;
+		deleteFromLinkedList(&sem->pendingList, task); // right thing to remove?
+		addToLinkedList(&YKReadyList, task); 
+		YKScheduler();
+	}
+	YKExitMutex();
+}
+
 
 YKSEM* YKSemCreate(int init)
 {
-	if (semaphoreCount >= MAX_SEMAPHORE)
+	if (semaphoreCount >= MAX_SEMAPHORE || init < 0)
 		return NULL;
 
 	YKSEMArray[semaphoreCount].value = init;

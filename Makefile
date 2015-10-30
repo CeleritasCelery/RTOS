@@ -1,15 +1,15 @@
 #####################################################################
 # ECEn 425 Lab 4 Makefile
 
-lab4.bin:	lab4final.s
-		nasm lab4final.s -o lab4.bin -l lab4.lst
+lab5.bin:	lab5final.s
+		nasm lab5final.s -o lab5.bin -l lab5.lst
 
-lab4final.s:	clib.s myisr.s myinth.s lab4app.s yakc.s yaks.s
-		cat clib.s myisr.s myinth.s lab4app.s yakc.s yaks.s > lab4final.s
+lab5final.s:	clib.s myisr.s myinth.s lab5app.s yakc.s yaks.s
+		cat clib.s myisr.s myinth.s lab5app.s yakc.s yaks.s > lab5final.s
 
-lab4app.s:	lab4app.c
-		cpp -xc++ lab4app.c lab4app.i
-		c86 -g lab4app.i lab4app.s
+lab5app.s:	lab5app.c
+		cpp -xc++ lab5app.c lab5app.i
+		c86 -g lab5app.i lab5app.s
 
 myinth.s:	myinth.c
 		cpp -xc++ myinth.c myinth.i
@@ -20,5 +20,5 @@ yakc.s:	        yakc.c
 		c86 -g yakc.i yakc.s
 
 clean:
-		rm lab4.bin lab4.lst lab4final.s myinth.s myinth.i \
-		lab4app.s lab4app.i yakc.s yakc.i
+		rm lab5.bin lab5.lst lab5final.s myinth.s myinth.i \
+		lab5app.s lab5app.i yakc.s yakc.i
