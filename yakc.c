@@ -27,6 +27,10 @@ int YKCtxSwCount = 0;
 YKSEM YKSEMArray[MAX_SEMAPHORE];
 int semaphoreCount = 0;
 
+//queues
+YKQ YKQArray[MAX_QUEUE];
+int queueCount = 0;
+
 void printIntHex(int arg)
 {
 	char buf[6] = {0,0,0,0,'h','\0'};
@@ -345,12 +349,12 @@ void YKSemPost(YKSEM* sem)
 {
 	YKEnterMutex();
 	sem->value++;	
-	if (sem->pendingList) {// will be null if empty?
+	if (sem->pendingList) {
 		TCBptr task = sem->pendingList;
-		deleteFromLinkedList(&sem->pendingList, task); // right thing to remove?
+		deleteFromLinkedList(&sem->pendingList, task);
 		addToLinkedList(&YKReadyList, task);
-		//printSemList("post", sem); 
-		YKScheduler();
+		if (nestedDepth == 0)
+			YKScheduler();
 	}
 	YKExitMutex();
 }
@@ -364,4 +368,58 @@ YKSEM* YKSemCreate(int init)
 	YKSEMArray[semaphoreCount].value = init;
 	YKSEMArray[semaphoreCount].pendingList = NULL;
 	return &YKSEMArray[semaphoreCount++];
+}
+
+//queues
+
+YKQ* YKQCreate(void** start, uint size)
+{
+	if(queueCount !=  MAX_QUEUE){
+		YKQArray[queueCount].baseAddr = start;
+		YKQArray[queueCount].size = size;
+		YKQArray[queueCount].head = 0;
+		YKQArray[queueCount].tail = 0;
+		YKQArray[queueCount].elCount = 0;	
+		return &YKQArray[queueCount++];	
+	} else return NULL;
+}
+
+bool YKQEmpty(YKQ* queue) {
+	return queue->elCount == 0;
+}
+
+bool YKQFull(YKQ* queue) {
+	return queue->elCount == queue->size - 1;
+}
+
+void* YKQPend(YKQ* queue) {
+	void* retVal;
+	if (YKQEmpty(queue)) {
+		deleteFromLinkedList(&YKReadyList, currentTask);
+		addToLinkedList(&queue->pendingList, currentTask);
+		YKScheduler();
+	}
+	retVal = queue->baseAddr[queue->head++];
+	if (queue->head >= queue->size)
+		queue->head = 0;
+	queue->elCount--;
+	return retVal;
+}
+
+int YKQPost(YKQ* queue, void* msg) {
+	if(YKQFull(queue)) return 0;
+
+	queue->baseAddr[queue->tail++] = msg;
+	if (queue->tail >= queue->size)
+		queue->tail = 0;
+
+	queue->elCount++;
+	if (queue->pendingList) {
+		TCBptr task = queue->pendingList;
+		deleteFromLinkedList(&queue->pendingList, task);
+		addToLinkedList(&YKReadyList, task);
+		if (nestedDepth == 0)
+			YKScheduler();
+	}
+	return 1;
 }
