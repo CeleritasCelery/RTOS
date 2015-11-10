@@ -4,12 +4,14 @@
 
 extern int KeyBuffer;
 
-void interruptHandler_Reset() {
+
+void interruptHandler_Reset() 
+{
 	exit(0);
 }
 
-
-void interruptHandler_Keyboard() {
+void interruptHandler_Keyboard() 
+{
 	char key = (char)KeyBuffer;
 	int inc = 0;
 	if (key < ' ' || key > '~') return;
@@ -31,4 +33,7 @@ void interruptHandler_Keyboard() {
 		printString(") IGNORED");
 		printNewLine();
 	}
+
 }
+
+

@@ -13,8 +13,6 @@ void YKScheduler();
 void YKDispatcher();
 void YKTickHandler();
 int getYKCtxSwCount();
-void YKTickNum();
-
 
 void printIntHex(int arg);
 void printVarHex(char* name, int var);

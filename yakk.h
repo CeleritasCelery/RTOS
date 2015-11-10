@@ -48,6 +48,7 @@ extern TCBptr YKDelayList;//linked list of delayed tasks
 extern TCBptr YKAvailList;//list of available tasks 
 extern TCB YKTCBArray[TASKNUMBER+1];
 extern unsigned int YKIdleCount;
+extern unsigned YKTickNum;
 
 //semaphore
 YKSEM* YKSemCreate(int init);

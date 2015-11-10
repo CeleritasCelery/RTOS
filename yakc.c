@@ -17,6 +17,7 @@ TCBptr YKAvailList;//list of available tasks
 TCB YKTCBArray[TASKNUMBER+1];
 int nestedDepth = 0;
 unsigned int YKIdleCount = 0;
+unsigned YKTickNum = 0;
 
 int idleTaskStack[TaskStackSize];
 int TCBArrayNum = 0;
@@ -298,7 +299,8 @@ void YKTickHandler() {// The kernel's timer tick interrupt handler
 	TCBptr next;
 	static unsigned int tick = 1;
 	
-	YKEnterMutex();		
+	YKEnterMutex();	
+	YKTickNum++;	
 	iter = YKDelayList;
 	next = iter->nextTCB;
 	printNewLine();
@@ -394,6 +396,7 @@ bool YKQFull(YKQ* queue) {
 
 void* YKQPend(YKQ* queue) {
 	void* retVal;
+	YKEnterMutex();
 	if (YKQEmpty(queue)) {
 		deleteFromLinkedList(&YKReadyList, currentTask);
 		addToLinkedList(&queue->pendingList, currentTask);
@@ -403,23 +406,30 @@ void* YKQPend(YKQ* queue) {
 	if (queue->head >= queue->size)
 		queue->head = 0;
 	queue->elCount--;
+	YKExitMutex();
 	return retVal;
 }
 
 int YKQPost(YKQ* queue, void* msg) {
-	if(YKQFull(queue)) return 0;
+	int retVal;
+	YKEnterMutex();
+	if(YKQFull(queue)) {
+		retVal = 0;
+	} else {
+		queue->baseAddr[queue->tail++] = msg;
+		if (queue->tail >= queue->size)
+			queue->tail = 0;
 
-	queue->baseAddr[queue->tail++] = msg;
-	if (queue->tail >= queue->size)
-		queue->tail = 0;
-
-	queue->elCount++;
-	if (queue->pendingList) {
-		TCBptr task = queue->pendingList;
-		deleteFromLinkedList(&queue->pendingList, task);
-		addToLinkedList(&YKReadyList, task);
-		if (nestedDepth == 0)
-			YKScheduler();
+		queue->elCount++;
+		if (queue->pendingList) {
+			TCBptr task = queue->pendingList;
+			deleteFromLinkedList(&queue->pendingList, task);
+			addToLinkedList(&YKReadyList, task);
+			if (nestedDepth == 0)
+				YKScheduler();
+		}
+		retVal = 1;
 	}
-	return 1;
+	YKExitMutex();
+	return retVal;
 }
