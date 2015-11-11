@@ -1,7 +1,7 @@
 #include "yaku.h"
 #include "yakk.h"
 #include "clib.h"
-#include "lab6inth.h"
+#include "lab7inth.h"
 
 #define TaskStackSize 256
 
@@ -442,7 +442,7 @@ int YKQPost(YKQ* queue, void* msg) {
 
 YKEVENT* YKEventCreate(uint initialValue)
 {
-	if (eventCount >= MAX_EVENT || initialValue < 0)
+	if (eventCount >= MAX_EVENT)
 		return NULL;
 
 	YKEVENTArray[eventCount].mask = initialValue;
@@ -455,7 +455,7 @@ bool eventTriggers(uint pendingFlags, uint setFlags, int waitMode )
 {
 	if ((waitMode == EVENT_WAIT_ANY) && (pendingFlags & setFlags))
 		return true;
-	else if ((waitMode == EVENT_WAIT_ALL) && ((pendingFlags & setFlags == pendingFlags))
+	else if ((waitMode == EVENT_WAIT_ALL) && ((pendingFlags & setFlags == pendingFlags)))
 		return true;
 	else 
 		return false;
@@ -477,9 +477,11 @@ uint YKEventPend(YKEVENT* event, uint eventMask, int waitMode)
 }
 void YKEventSet(YKEVENT* event, uint eventMask)
 {
+	TCBptr current;
+	TCBptr next;
 	YKEnterMutex();
-	TCBPtr current = event->pendingList;
-	TCBPtr next = current->nextTCB;
+	current = event->pendingList;
+	next = current->nextTCB;
 	event->mask = eventMask;
 	
 	while (current != NULL) {

@@ -5,7 +5,7 @@
 #define TASKNUMBER 6
 #define MAX_SEMAPHORE 5
 #define MAX_QUEUE 5
-#define c 5
+#define MAX_EVENT 5
 #define true 1
 #define false 0
 #define NULL 0

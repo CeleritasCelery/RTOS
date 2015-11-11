@@ -1,24 +1,24 @@
 #####################################################################
 # ECEn 425 Lab 4 Makefile
 
-lab6.bin:	lab6final.s
-		nasm lab6final.s -o lab6.bin -l lab6.lst
+lab7.bin:	lab7final.s
+		nasm lab7final.s -o lab7.bin -l lab7.lst
 
-lab6final.s:	clib.s myisr.s lab6inth.s lab6app.s yakc.s yaks.s
-		cat clib.s myisr.s lab6inth.s lab6app.s yakc.s yaks.s > lab6final.s
+lab7final.s:	clib.s myisr.s lab7inth.s lab7app.s yakc.s yaks.s
+		cat clib.s myisr.s lab7inth.s lab7app.s yakc.s yaks.s > lab7final.s
 
-lab6app.s:	lab6app.c
-		cpp -xc++ lab6app.c lab6app.i
-		c86 -g lab6app.i lab6app.s
+lab7app.s:	lab7app.c
+		cpp -xc++ lab7app.c lab7app.i
+		c86 -g lab7app.i lab7app.s
 
-lab6inth.s:	lab6inth.c
-		cpp -xc++ lab6inth.c lab6inth.i
-		c86 -g lab6inth.i lab6inth.s
+lab7inth.s:	lab7inth.c
+		cpp -xc++ lab7inth.c lab7inth.i
+		c86 -g lab7inth.i lab7inth.s
 
 yakc.s:	        yakc.c
 		cpp -xc++ yakc.c yakc.i
 		c86 -g yakc.i yakc.s
 
 clean:
-		rm lab6.bin lab6.lst lab6final.s lab6inth.s lab6inth.i \
-		lab6app.s lab6app.i yakc.s yakc.i
+		rm lab7.bin lab7.lst lab7final.s lab7inth.s lab7inth.i \
+		lab7app.s lab7app.i yakc.s yakc.i
