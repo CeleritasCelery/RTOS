@@ -33,6 +33,10 @@ int semaphoreCount = 0;
 YKQ YKQArray[MAX_QUEUE];
 int queueCount = 0;
 
+//events
+YKEVENT YKEVENTArray[MAX_EVENT];
+int eventCount = 0;
+
 void printIntHex(int arg)
 {
 	char buf[6] = {0,0,0,0,'h','\0'};
@@ -341,8 +345,7 @@ void YKSemPend(YKSEM* sem)
 	if (sem->value-- <= 0) {
 		deleteFromLinkedList(&YKReadyList, currentTask);
 		addToLinkedList(&sem->pendingList, currentTask);
-		//printSemList("pend", sem);
-		YKScheduler(); // can switch context here?
+		YKScheduler();
 	}
 	YKExitMutex();
 }
@@ -433,3 +436,69 @@ int YKQPost(YKQ* queue, void* msg) {
 	YKExitMutex();
 	return retVal;
 }
+
+
+//Events
+
+YKEVENT* YKEventCreate(uint initialValue)
+{
+	if (eventCount >= MAX_EVENT || initialValue < 0)
+		return NULL;
+
+	YKEVENTArray[eventCount].mask = initialValue;
+	YKEVENTArray[eventCount].pendingList = NULL;
+	return &YKEVENTArray[eventCount++];
+
+}
+
+bool eventTriggers(uint pendingFlags, uint setFlags, int waitMode )
+{
+	if ((waitMode == EVENT_WAIT_ANY) && (pendingFlags & setFlags))
+		return true;
+	else if ((waitMode == EVENT_WAIT_ALL) && ((pendingFlags & setFlags == pendingFlags))
+		return true;
+	else 
+		return false;
+}
+
+uint YKEventPend(YKEVENT* event, uint eventMask, int waitMode)
+{
+	YKEnterMutex();
+	if (!eventTriggers(eventMask, event->mask, waitMode)) {
+		currentTask->eventMask = eventMask;
+		currentTask->waitMode = waitMode;
+		deleteFromLinkedList(&YKReadyList, currentTask);
+		addToLinkedList(&event->pendingList, currentTask);
+		YKScheduler();
+	}
+	YKExitMutex();
+	return event->mask;
+
+}
+void YKEventSet(YKEVENT* event, uint eventMask)
+{
+	YKEnterMutex();
+	TCBPtr current = event->pendingList;
+	TCBPtr next = current->nextTCB;
+	event->mask = eventMask;
+	
+	while (current != NULL) {
+		next = current->nextTCB;
+		if (eventTriggers(current->eventMask, eventMask, current->waitMode)) {			
+			deleteFromLinkedList(&event->pendingList, current);
+			addToLinkedList(&YKReadyList, current);
+		} 
+        current = next;
+    }
+	if (nestedDepth == 0)
+		YKScheduler();
+	YKExitMutex();
+}
+void YKEventReset(YKEVENT* event, uint eventMask) 
+{
+	YKEnterMutex();
+	event->mask = event->mask & ~(event->mask & eventMask);
+	YKExitMutex();
+}
+
+
