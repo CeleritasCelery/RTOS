@@ -37,7 +37,7 @@ IsrKey:
 	push 	es
 	push 	ds
 	sti	
-	call    interruptHandler_Keyboard
+	call    mykeybrd
 	cli
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
@@ -54,5 +54,5 @@ IsrKey:
 
 IsrReset:
 	sti	
-	call    interruptHandler_Reset
+	call    myreset
 	cli

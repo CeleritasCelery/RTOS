@@ -1,6 +1,7 @@
 #include "yaku.h"
 #include "yakk.h"
 #include "clib.h"
+#include "lab6inth.h"
 
 #define TaskStackSize 256
 
@@ -297,18 +298,16 @@ void YKScheduler() {// Determines the highest priority ready task
 void YKTickHandler() {// The kernel's timer tick interrupt handler
 	TCBptr iter;
 	TCBptr next;
-	static unsigned int tick = 1;
 	
 	YKEnterMutex();	
 	YKTickNum++;	
 	iter = YKDelayList;
 	next = iter->nextTCB;
-	printNewLine();
-	printString("Tick ");
-	printUInt(tick);
-	printNewLine();
+//	printNewLine();
+//	printString("Tick ");
+//	printUInt(YKTickNum);
+//	printNewLine();
 
-	tick++;
 	while (iter != NULL){
 		iter->tickDelay--;
 		next = iter->nextTCB; // assign here because the next pointer will get globbered if branch taken	
@@ -318,6 +317,7 @@ void YKTickHandler() {// The kernel's timer tick interrupt handler
 		} 
 		iter = next;
 	}
+	mytick();
 	YKExitMutex();	
 }
 
