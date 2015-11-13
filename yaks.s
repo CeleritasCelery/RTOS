@@ -32,4 +32,11 @@ YKDispatcher:
 	pop	bp
 	iret
 
-	
+YKEnterMutex: ;Disables interrupts
+	cli
+	ret
+
+
+YKExitMutex: ;Enables interrupts
+	sti
+	ret

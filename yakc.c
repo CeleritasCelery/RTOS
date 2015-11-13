@@ -212,6 +212,7 @@ void YKInitialize() {// - Initializes all required kernel data structures
 }
 
 void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Creates a new task
+	//int* sp;
 	if (runCalled)
  		YKEnterMutex();	
 	YKTCBArray[TCBArrayNum].priority = priority;
@@ -221,6 +222,21 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 	YKTCBArray[TCBArrayNum].prevTCB = NULL;
 	YKTCBArray[TCBArrayNum].nextTCB = NULL;
 	//saving the stack frame 
+	//sp = (int *)YKTCBArray[TCBArrayNum].SPtr;
+	//*--sp = 0; // flags
+	//*--sp = 0; // CS
+	//*--sp = (int)task; // IP
+	//*--sp = (int)((int *)taskStack); // bp
+	//*--sp = 0; // as
+	//*--sp = 0; // bx
+	//*--sp = 0; // cx
+	//*--sp = 0; // dx
+	//*--sp = 0; // si
+	//*--sp = 0; // di
+	//*--sp = 0; // es
+	//*--sp = 0; // ds
+	//YKTCBArray[TCBArrayNum].SPtr = (void*)sp;
+
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = 0; // flags
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = 0; // CS
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = (int)task; // IP
@@ -270,14 +286,6 @@ void YKDelayTask(unsigned int delayCount){// Delays task for specified number of
 	
 	YKScheduler();
 	YKExitMutex();
-}
-
-void YKEnterMutex(){// Disables interrupts
-	asm("cli");
-}
-
-void YKExitMutex(){// Enables interrupts
-	asm("sti");
 }
 
 void YKEnterISR(){// Called on entry to ISR 	
