@@ -5,8 +5,6 @@ void YKInitialize();
 void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority );
 void YKRun();
 void YKDelayTask(unsigned int);
-void YKEnterMutex();
-void YKExitMutex();
 void YKEnterISR();
 void YKExitISR();
 void YKScheduler();

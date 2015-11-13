@@ -13,6 +13,9 @@
 #define EVENT_WAIT_ANY 0
 #define EVENT_WAIT_ALL 1
 
+#define YKEnterMutex() asm("cli")
+#define YKExitMutex() asm("sti")
+
 typedef char byte;
 typedef char bool;
 typedef unsigned int uint;
@@ -53,6 +56,7 @@ typedef struct YKEVENT_t {
 
 
 void idleTask(void);
+void YKTickHandler();
 
 extern TCBptr currentTask;
 extern TCBptr YKReadyList;//linked list of ready tasks

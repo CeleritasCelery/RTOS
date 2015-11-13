@@ -1,7 +1,6 @@
 #include "yaku.h"
 #include "yakk.h"
 #include "clib.h"
-#include "lab7inth.h"
 
 #define TaskStackSize 256
 
@@ -329,7 +328,6 @@ void YKTickHandler() {// The kernel's timer tick interrupt handler
 		} 
 		iter = next;
 	}
-	mytick();
 	YKExitMutex();	
 }
 
@@ -347,7 +345,7 @@ void idleTask(void) {
 	}
 }
 
-void YKSemPend(YKSEM* sem)
+/*void YKSemPend(YKSEM* sem)
 {
 	YKEnterMutex();
 	if (sem->value-- <= 0) {
@@ -356,9 +354,9 @@ void YKSemPend(YKSEM* sem)
 		YKScheduler();
 	}
 	YKExitMutex();
-}
+}*/
 
-void YKSemPost(YKSEM* sem)
+/*void YKSemPost(YKSEM* sem)
 {
 	YKEnterMutex();
 	sem->value++;	
@@ -370,7 +368,9 @@ void YKSemPost(YKSEM* sem)
 			YKScheduler();
 	}
 	YKExitMutex();
-}
+}*/
+
+
 
 
 YKSEM* YKSemCreate(int init)

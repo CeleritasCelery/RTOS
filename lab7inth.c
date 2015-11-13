@@ -4,7 +4,6 @@ Revision date: 4 November 2009
 Description: Sample interrupt handler code for EE 425 lab 6 (Message queues)
 */
 
-#include "lab6defs.h"
 #include "yakk.h"
 #include "clib.h"
 #include "lab7defs.h"
@@ -14,19 +13,19 @@ extern struct msg MsgArray[];
 extern int GlobalFlag;
 extern int KeyBuffer;
 
-void myreset(void)
+void resetHandler(void)
 {
     exit(0);
 }
 
-void mytick(void)
+void tickHandler(void)
 {
-
+	YKTickHandler();
 }	       
 
-void KeyboardHandler(void)
+void keyboardHandler(void)
 {
-    char c;
+	char c;
     c = KeyBuffer;
 
     if(c == 'a') YKEventSet(charEvent, EVENT_A_KEY);

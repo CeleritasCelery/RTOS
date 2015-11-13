@@ -7,10 +7,10 @@ IsrTick:
 	push 	di
 	push 	bp
 	push 	es
-	push 	ds
+	push 	ds  
 	call 	YKEnterISR
 	sti	
-	call    YKTickHandler
+	call    tickHandler
 	cli
 	call	YKExitISR
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
@@ -37,7 +37,7 @@ IsrKey:
 	push 	es
 	push 	ds
 	sti	
-	call    KeyboardHandler
+	call    keyboardHandler
 	cli
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
@@ -54,5 +54,5 @@ IsrKey:
 
 IsrReset:
 	sti	
-	call    myreset
+	call    resetHandler
 	cli

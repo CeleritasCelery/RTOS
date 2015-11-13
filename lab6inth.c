@@ -12,27 +12,29 @@ extern YKQ *MsgQPtr;
 extern struct msg MsgArray[];
 extern int GlobalFlag;
 
-void myreset(void)
+void resetHandler(void)
 {
     exit(0);
 }
 
-void mytick(void)
+void tickHandler(void)
 {
-    static int next = 0;
-    static int data = 0;
+	static int next = 0;
+	static int data = 0;
 
-    /* create a message with tick (sequence #) and pseudo-random data */
-    MsgArray[next].tick = YKTickNum;
-    data = (data + 89) % 100;
-    MsgArray[next].data = data;
-    if (YKQPost(MsgQPtr, (void *) &(MsgArray[next])) == 0)
-	printString("  TickISR: queue overflow! \n");
-    else if (++next >= MSGARRAYSIZE)
-	next = 0;
+	/* create a message with tick (sequence #) and pseudo-random data */
+	MsgArray[next].tick = YKTickNum;
+	data = (data + 89) % 100;
+	MsgArray[next].data = data;
+	if (YKQPost(MsgQPtr, (void *) &(MsgArray[next])) == 0)
+		printString("  TickISR: queue overflow! \n");
+	else if (++next >= MSGARRAYSIZE)
+		next = 0;
+
+	YKTickHandler();
 }	       
 
-void mykeybrd(void)
+void keyboardHandler(void)
 {
-    GlobalFlag = 1;
+	GlobalFlag = 1;
 }

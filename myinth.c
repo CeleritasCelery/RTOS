@@ -5,12 +5,12 @@
 extern int KeyBuffer;
 
 
-void interruptHandler_Reset() 
+void resetHandler() 
 {
 	exit(0);
 }
 
-void interruptHandler_Keyboard() 
+void keyboardHandler() 
 {
 	char key = (char)KeyBuffer;
 	int inc = 0;
@@ -34,6 +34,11 @@ void interruptHandler_Keyboard()
 		printNewLine();
 	}
 
+}
+
+void tickHandler(void)
+{
+	YKTickHandler();
 }
 
 
