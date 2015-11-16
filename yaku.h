@@ -15,6 +15,7 @@ int getYKCtxSwCount();
 void printIntHex(int arg);
 void printVarHex(char* name, int var);
 void printVar(char* name, int var);
+void printUVar(char* name, unsigned int var);
 void printATask(void);
 void printLinkedList(char* string, int list);
 

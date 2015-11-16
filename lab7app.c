@@ -145,9 +145,10 @@ void STask(void)           /* tracks statistics */
 void main(void)
 {
     YKInitialize();
-
-    charEvent = YKEventCreate(0);
+	
     numEvent = YKEventCreate(0);
+    charEvent = YKEventCreate(0);
+
     YKNewTask(STask, (void *) &STaskStk[TASK_STACK_SIZE], 0);
     
     YKRun();

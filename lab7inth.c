@@ -6,6 +6,7 @@ Description: Sample interrupt handler code for EE 425 lab 6 (Message queues)
 
 #include "yakk.h"
 #include "clib.h"
+#include "yaku.h"
 #include "lab7defs.h"
 
 extern YKQ *MsgQPtr; 
@@ -27,7 +28,6 @@ void keyboardHandler(void)
 {
 	char c;
     c = KeyBuffer;
-
     if(c == 'a') YKEventSet(charEvent, EVENT_A_KEY);
     else if(c == 'b') YKEventSet(charEvent, EVENT_B_KEY);
     else if(c == 'c') YKEventSet(charEvent, EVENT_C_KEY);

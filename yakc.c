@@ -57,6 +57,13 @@ void printVar(char* name, int var)
     printNewLine();	
 }
 
+void printUVar(char* name, unsigned int var)
+{
+	printString(name);
+	printUInt(var);
+    printNewLine();	
+}
+
 void printVarHex(char* name, int var)
 {
 	printString(name);
@@ -127,6 +134,26 @@ void printSemList(char* string, YKSEM* sem){
     printString(string);
 	printNewLine();
 	printVar("value = ",sem->value);
+    while (current != NULL) {
+        printString("\nPriority = ");
+        printInt(current->priority);
+        printString(" TickDelay = ");
+        printInt(current->tickDelay);
+        printString(" State = ");
+        printInt(current->state);
+        current = current->nextTCB;
+    }
+    printNewLine();
+      printString("##############\n");
+}
+
+void printEventList(char* string, YKEVENT* event){
+    TCBptr current = event->pendingList;
+    printNewLine();
+    printString("##############\n");
+    printString(string);
+	printNewLine();
+	printVar("mask = ",event->mask);
     while (current != NULL) {
         printString("\nPriority = ");
         printInt(current->priority);
@@ -335,13 +362,13 @@ int getYKCtxSwCount(){// Global variable tracking context switches
 	return YKCtxSwCount;
 }
 
+
 void idleTask(void) {
-	int i;
-	asm ("sti");	
+	YKExitMutex();	
 	while(1) {
-		i = 0;
+		YKEnterMutex();	
 		YKIdleCount++;
-		while (i++ < 10 );
+		YKExitMutex();	
 	}
 }
 
@@ -490,11 +517,10 @@ void YKEventSet(YKEVENT* event, uint eventMask)
 	YKEnterMutex();
 	current = event->pendingList;
 	next = current->nextTCB;
-	event->mask = eventMask;
-	
+	event->mask |= eventMask;
 	while (current != NULL) {
 		next = current->nextTCB;
-		if (eventTriggers(current->eventMask, eventMask, current->waitMode)) {			
+		if (eventTriggers(current->eventMask, event->mask, current->waitMode)) {	
 			deleteFromLinkedList(&event->pendingList, current);
 			addToLinkedList(&YKReadyList, current);
 		} 
