@@ -44,8 +44,8 @@ void main(void)
 {
     YKInitialize();
 	
-	PieceQPtr = YKQCreate(PieceQPtr, PIECEQ_SIZE);
-	MoveQPtr = YKQCreate(MoveQPtr, MOVEQ_SIZE);
+	PieceQPtr = YKQCreate(PieceQ, PIECEQ_SIZE);
+	MoveQPtr = YKQCreate(MoveQ, MOVEQ_SIZE);
 
     YKNewTask(PlaceTask, (void *) &PlaceTaskStk[TASK_STACK_SIZE], 5);
     YKNewTask(ComTask, (void *) &ComTaskStk[TASK_STACK_SIZE], 10);

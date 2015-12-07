@@ -1,31 +1,31 @@
 #####################################################################
 # ECEn 425 Lab 7 Makefile
 
-lab7.bin:	lab7final.s
-		@nasm lab7final.s -o lab7.bin -l lab7.lst
+simptris.bin:	simptrisfinal.s
+		@nasm simptrisfinal.s -o simptris.bin -l simptris.lst
 
-lab7final.s:	clib.s myisr.s lab7inth.s lab7app.s yakc.s yaks.s
-		@cat clib.s myisr.s lab7inth.s lab7app.s yakc.s yaks.s > lab7final.s
+simptrisfinal.s:	clib.s simptris.s simptrisIsr.s simptrisInth.s simptrisApp.s yakc.s yaks.s
+		@cat clib.s simptris.s simptrisIsr.s simptrisInth.s simptrisApp.s yakc.s yaks.s > simptrisfinal.s
 
-lab7app.s:	lab7app.c
-		@cpp -xc++ lab7app.c lab7app.i
-		@c86 -g lab7app.i lab7app.s
+simptrisApp.s:	simptrisApp.c
+		@cpp -xc++ simptrisApp.c simptrisApp.i
+		@c86 -g simptrisApp.i simptrisApp.s
 
-lab7inth.s:	lab7inth.c
-		@cpp -xc++ lab7inth.c lab7inth.i
-		@c86 -g lab7inth.i lab7inth.s
+simptrisInth.s:	simptrisInth.c
+		@cpp -xc++ simptrisInth.c simptrisInth.i
+		@c86 -g simptrisInth.i simptrisInth.s
 
 yakc.s:	        yakc.c
 		@cpp -xc++ yakc.c yakc.i
 		@c86 -g yakc.i yakc.s
 
 clean:
-		@if [ -e lab7.bin    ] ; then rm lab7.bin    ; fi
-		@if [ -e lab7.lst    ] ; then rm lab7.lst    ; fi
-		@if [ -e lab7final.s ] ; then rm lab7final.s ; fi
-		@if [ -e lab7inth.s  ] ; then rm lab7inth.s  ; fi
-		@if [ -e lab7inth.i  ] ; then rm lab7inth.i  ; fi
-		@if [ -e lab7app.s   ] ; then rm lab7app.s   ; fi
-		@if [ -e lab7app.i   ] ; then rm lab7app.i   ; fi
-		@if [ -e yakc.s      ] ; then rm yakc.s      ; fi
-		@if [ -e yakc.i      ] ; then rm yakc.i      ; fi
+		@if [ -e simptris.bin    ] ; then rm simptris.bin    ; fi
+		@if [ -e simptris.lst    ] ; then rm simptris.lst    ; fi
+		@if [ -e simptrisfinal.s ] ; then rm simptrisfinal.s ; fi
+		@if [ -e simptrisInth.s  ] ; then rm simptrisInth.s  ; fi
+		@if [ -e simptrisInth.i  ] ; then rm simptrisInth.i  ; fi
+		@if [ -e simptrisApp.s   ] ; then rm simptrisApp.s   ; fi
+		@if [ -e simptrisApp.i   ] ; then rm simptrisApp.i   ; fi
+		@if [ -e yakc.s          ] ; then rm yakc.s      ; fi
+		@if [ -e yakc.i          ] ; then rm yakc.i      ; fi

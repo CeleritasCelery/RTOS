@@ -61,7 +61,7 @@ IsrNewPiece:
 	pop 	ax
 	iret
 
-IsrRecieved:
+IsrReceived:
 	push 	ax
 	push 	bx
 	push 	cx
