@@ -7,6 +7,7 @@ Description: Application code for EE 425 lab 7 (Event flags)
 #include "clib.h"
 #include "yakk.h"                     /* contains kernel definitions */
 #include "yaku.h"
+#include "simptrisDefs.h"
 
 #define TASK_STACK_SIZE   512         /* stack size in words */
 #define PIECEQ_SIZE 10
@@ -14,6 +15,8 @@ Description: Application code for EE 425 lab 7 (Event flags)
 
 YKEVENT *charEvent;
 YKEVENT *numEvent;
+
+piece_t PieceArray[PIECEQ_SIZE*PIECE_STRUCT_SIZE];  /* buffers for message content */
 
 int PlaceTaskStk[TASK_STACK_SIZE];     /* a stack for each task */
 int ComTaskStk[TASK_STACK_SIZE];
@@ -49,3 +52,5 @@ void main(void)
     
     YKRun();
 }
+
+
