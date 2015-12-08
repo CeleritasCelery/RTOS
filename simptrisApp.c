@@ -176,7 +176,7 @@ void createMoveCorner(piece_t* piece, int desiredColumn, int desiredRotation) {
 	}
 }
 
-#define SIDE_SIZE_THRESHOLD 4
+#define SIDE_SIZE_THRESHOLD 3
 void PlaceTask(void)        /* place the piece */
 {
 	int desiredRotation = 0;
@@ -212,11 +212,11 @@ void PlaceTask(void)        /* place the piece */
 					printString("placeTask: default case!! #bad\n");
 				}
 				unevenRotation = ROTATION_EVEN;
-			} else if (sideLeftDiff >= SIDE_SIZE_THRESHOLD) { // to the right
+			} else if (sideLeftDiff > 0) { // to the right
 				desiredColumn  = (desiredRotation == CORNER_BOTTOM_LEFT) ? 3 : 5;
 				unevenRotation = (desiredRotation == CORNER_BOTTOM_LEFT) ? CORNER_TOP_RIGHT : CORNER_TOP_LEFT;
 				sideLeftDiff -= 2;
-			} else if (sideLeftDiff <= -SIDE_SIZE_THRESHOLD) {// to the left
+			} else if (sideLeftDiff < 0) {// to the left
 				desiredColumn = (desiredRotation == CORNER_BOTTOM_LEFT) ? 0 : 2;
 				unevenRotation = (desiredRotation == CORNER_BOTTOM_LEFT) ? -CORNER_TOP_RIGHT : -CORNER_TOP_LEFT;
 				sideLeftDiff += 2;

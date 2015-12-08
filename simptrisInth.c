@@ -52,3 +52,8 @@ void recievedHandler(void)
 	YKSemPost(MoveSemPtr);
 	YKEnterMutex();
 }
+
+void touchdownHandler()
+{
+
+}
