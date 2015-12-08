@@ -319,6 +319,7 @@ void YKEnterISR(){// Called on entry to ISR
 }
 
 void YKExitISR(){// Called on exit from ISR
+	//printVar("nested depth = ", nestedDepth);
  	nestedDepth--;
 	if(nestedDepth == 0){
 		YKScheduler();
@@ -326,7 +327,9 @@ void YKExitISR(){// Called on exit from ISR
 }
 
 void YKScheduler() {// Determines the highest priority ready task
+	//printString("call schedular\n");
 	if (YKReadyList != currentTask) {// currentTask has to be equal to the stack we are on
+		//printLinkedList("schedular called", 0);
 		YKCtxSwCount++;
 		YKDispatcher();
 	}	

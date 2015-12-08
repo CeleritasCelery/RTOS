@@ -10,7 +10,10 @@ Description: Sample interrupt handler code for EE 425 lab 6 (Message queues)
 #include "simptrisDefs.h"
 
 extern YKQ *PieceQPtr; 
+extern YKSEM *MoveSemPtr;
 extern piece_t PieceArray[];
+extern int linesCleared;
+
 extern int NewPieceID;
 extern int NewPieceType;
 extern int NewPieceOrientation;
@@ -29,18 +32,31 @@ void tickHandler(void)
 void newPieceHandler(void)
 {
 	static int next = 0;
+	YKEnterMutex();
+	
 	PieceArray[next].ID = NewPieceID;
 	PieceArray[next].Type = NewPieceType;
 	PieceArray[next].Orientation = NewPieceOrientation;
 	PieceArray[next].Column = NewPieceColumn;
-
-
+	if (YKQPost(PieceQPtr, (void *) &(PieceArray[next])) == 0)
+		printString("  PieceISR: queue overflow! \n");
+	else if (++next >= PIECEQ_SIZE)
+		next = 0;
+	//printString("new piece arrived\n");
+	YKExitMutex();
 }
 
-void clearHandler(void)
+/*void clearHandler(void)
 {
-}
+	YKEnterMutex();
+	linesCleared++;
+	//printVar("lines cleared:", linesCleared);
+	YKExitMutex();
+}*/
 
 void recievedHandler(void)
 {
+	YKEnterMutex();
+	YKSemPost(MoveSemPtr);
+	YKEnterMutex();
 }
