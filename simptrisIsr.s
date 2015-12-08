@@ -30,6 +30,7 @@ IsrTick:
 IsrGameOver:
 	push 	ax
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
+	call    resetHandler
 	out	0x20, al	; Write EOI to PIC (port 0x20)
 	pop	ax
 	iret

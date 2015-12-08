@@ -46,14 +46,6 @@ void newPieceHandler(void)
 	YKExitMutex();
 }
 
-/*void clearHandler(void)
-{
-	YKEnterMutex();
-	linesCleared++;
-	//printVar("lines cleared:", linesCleared);
-	YKExitMutex();
-}*/
-
 void recievedHandler(void)
 {
 	YKEnterMutex();

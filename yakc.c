@@ -238,7 +238,6 @@ void YKInitialize() {// - Initializes all required kernel data structures
 }
 
 void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Creates a new task
-	//int* sp;
 	if (runCalled)
  		YKEnterMutex();	
 	YKTCBArray[TCBArrayNum].priority = priority;
@@ -247,21 +246,6 @@ void YKNewTask(void(*task)(void), void *taskStack, unsigned char priority ){//Cr
 	YKTCBArray[TCBArrayNum].tickDelay = 0;
 	YKTCBArray[TCBArrayNum].prevTCB = NULL;
 	YKTCBArray[TCBArrayNum].nextTCB = NULL;
-	//saving the stack frame 
-	//sp = (int *)YKTCBArray[TCBArrayNum].SPtr;
-	//*--sp = 0; // flags
-	//*--sp = 0; // CS
-	//*--sp = (int)task; // IP
-	//*--sp = (int)((int *)taskStack); // bp
-	//*--sp = 0; // as
-	//*--sp = 0; // bx
-	//*--sp = 0; // cx
-	//*--sp = 0; // dx
-	//*--sp = 0; // si
-	//*--sp = 0; // di
-	//*--sp = 0; // es
-	//*--sp = 0; // ds
-	//YKTCBArray[TCBArrayNum].SPtr = (void*)sp;
 
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = 0; // flags
 	*--((int *)YKTCBArray[TCBArrayNum].SPtr) = 0; // CS
@@ -319,7 +303,6 @@ void YKEnterISR(){// Called on entry to ISR
 }
 
 void YKExitISR(){// Called on exit from ISR
-	//printVar("nested depth = ", nestedDepth);
  	nestedDepth--;
 	if(nestedDepth == 0){
 		YKScheduler();
@@ -327,9 +310,7 @@ void YKExitISR(){// Called on exit from ISR
 }
 
 void YKScheduler() {// Determines the highest priority ready task
-	//printString("call schedular\n");
 	if (YKReadyList != currentTask) {// currentTask has to be equal to the stack we are on
-		//printLinkedList("schedular called", 0);
 		YKCtxSwCount++;
 		YKDispatcher();
 	}	
@@ -344,10 +325,6 @@ void YKTickHandler() {// The kernel's timer tick interrupt handler
 	YKTickNum++;	
 	iter = YKDelayList;
 	next = iter->nextTCB;
-//	printNewLine();
-//	printString("Tick ");
-//	printUInt(YKTickNum);
-//	printNewLine();
 
 	while (iter != NULL){
 		iter->tickDelay--;

@@ -176,7 +176,7 @@ void createMoveCorner(piece_t* piece, int desiredColumn, int desiredRotation) {
 	}
 }
 
-#define SIDE_SIZE_THRESHOLD 3
+#define SIDE_SIZE_THRESHOLD 4
 void PlaceTask(void)        /* place the piece */
 {
 	int desiredRotation = 0;
@@ -186,11 +186,7 @@ void PlaceTask(void)        /* place the piece */
 	printString("started place task \n");
 	
 	while(1) {
-		//printLinkedList("ready list in place", 0);
 		currentPiece = (piece_t *) YKQPend(PieceQPtr); /* get next piece */
-		//printVar("placeTask: piece type = ", currentPiece->Type);
-		//printVar("placeTask: piece Col = ", currentPiece->Column);
-		//printVar("placeTask: piece rot = ", currentPiece->Orientation);
 		if (currentPiece->Type == PIECE_TYPE_STRAIGHT) {
 			if (sideLeftDiff >= SIDE_SIZE_THRESHOLD) { // to the right
 				desiredColumn = MIDDLE_RIGHT;		
@@ -203,9 +199,6 @@ void PlaceTask(void)        /* place the piece */
 			}
 			desiredRotation = STRAIGHT_HORIZONTAL;
 			sideLeftDiff += (desiredColumn == MIDDLE_LEFT) ? 1 : -1;
-			//printString("placeTask: straight piece\n");
-			//printVar("placeTask: desired Col = ", desiredColumn);
-			//printVar("placeTask: desired rot = ", desiredRotation);
 			createMoveStraight(currentPiece, desiredColumn, desiredRotation);
 		} else { // corner piece
 			desiredRotation = GET_EVEN_ROTATION(currentPiece->Orientation);
@@ -238,9 +231,6 @@ void PlaceTask(void)        /* place the piece */
 					sideLeftDiff += 2;
 				}	
 			}
-			//printString("placeTask: corner piece\n");
-			//printVar("placeTask: desired Col = ", desiredColumn);
-			//printVar("placeTask: desired rot = ", desiredRotation);
 			createMoveCorner(currentPiece, desiredColumn, desiredRotation);
 
 		}
@@ -259,12 +249,8 @@ void ComTask(void)    /* slide and rotate the piece */
 		currentMove = (move_t *) YKQPend(MoveQPtr); /* get next move */	
 		
 		if (currentMove->Method == METHOD_SLIDE) {
-			//printString("comTask: slide\n");
-			//printVar("comTask: direction = ", currentMove->Direction);
 			SlidePiece(currentMove->ID, currentMove->Direction);
 		} else {
-			//printString("comTask: rotate\n");
-			//("comTask: direction = ", currentMove->Direction);
 			RotatePiece(currentMove->ID, currentMove->Direction);
 		}
 	}
@@ -284,8 +270,8 @@ void STask(void)           /* tracks statistics */
     max = YKIdleCount / 25;
     YKIdleCount = 0;
 	
-    YKNewTask(PlaceTask, (void *) &PlaceTaskStk[TASK_STACK_SIZE], 5);
-    YKNewTask(ComTask, (void *) &ComTaskStk[TASK_STACK_SIZE], 10);
+    YKNewTask(PlaceTask, (void *) &PlaceTaskStk[TASK_STACK_SIZE], 10);
+    YKNewTask(ComTask, (void *) &ComTaskStk[TASK_STACK_SIZE], 5);
 	SeedSimptris((long)87532);
     StartSimptris();
 
