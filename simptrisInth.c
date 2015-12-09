@@ -13,6 +13,7 @@ extern YKQ *PieceQPtr;
 extern YKSEM *MoveSemPtr;
 extern piece_t PieceArray[];
 extern int linesCleared;
+extern int uselessID;
 
 extern int NewPieceID;
 extern int NewPieceType;
@@ -51,9 +52,4 @@ void recievedHandler(void)
 	YKEnterMutex();
 	YKSemPost(MoveSemPtr);
 	YKEnterMutex();
-}
-
-void touchdownHandler()
-{
-
 }

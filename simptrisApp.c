@@ -20,6 +20,8 @@ YKEVENT *numEvent;
 
 //int linesCleared = 0;
 
+extern int TouchdownID;
+
 piece_t PieceArray[PIECEQ_SIZE];  /* buffers for piece content */
 move_t MoveArray[MOVEQ_SIZE];  /* buffers for  MOVE content */
 int moveIdx = 0;
@@ -242,12 +244,12 @@ void PlaceTask(void)        /* place the piece */
 
 void ComTask(void)    /* slide and rotate the piece */
 {
+	int uselessID;
 	move_t* currentMove;
 	printString("started com task \n");
 	while (1) {
 		YKSemPend(MoveSemPtr); /* wait to send */
 		currentMove = (move_t *) YKQPend(MoveQPtr); /* get next move */	
-		
 		if (currentMove->Method == METHOD_SLIDE) {
 			SlidePiece(currentMove->ID, currentMove->Direction);
 		} else {
